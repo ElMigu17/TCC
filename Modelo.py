@@ -79,17 +79,25 @@ class distribuicao_graduacao:
                 assignemt[(doc.num_id, dis.id)] = model.NewBoolVar('assignemt_doc%idis%i' % (doc.num_id, dis.id)) 
 
         for dis in disciplinas:
-                model.AddExactlyOne(assignemt[(doc.num_id, dis.id)] for doc in docentes)
+            model.AddExactlyOne(assignemt[(doc.num_id, dis.id)] for doc in docentes)
+
+        for doc in docentes:
+            total = 0
+            for dis in disciplinas:
+                total += assignemt[(doc.num_id, dis.id)]*dis.qtd_creditos
+            model.Add(total >= 8)
 
         solver = cp_model.CpSolver()
         status = solver.Solve(model)
+
+        print(model)
 
         if status == cp_model.OPTIMAL:
             print('Solution:')
             for doc in docentes:
                 for dis in disciplinas:
                     if solver.Value(assignemt[(doc.num_id, dis.id)]) == 1:
-                        print('Nurse', doc.num_id, 'works shift',  dis.id)
+                        print('Professor', doc.num_id, 'lecionara a disciplina',  dis.id)
                 print()
             print(f'Number of shift requests met = {solver.ObjectiveValue()}')
         else:
