@@ -67,35 +67,42 @@ class distribuicao_graduacao:
         self.distribui_disciplinas_com_prioridade()
         self.distribui_restante()
 
+    def matriz_de_correlacao(self):
+        assignemt = {}
+        for doc in self.docentes:
+            for dis in self.disciplinas:
+                assignemt[(doc.num_id, dis.id)] = self.model.NewBoolVar('assignemt_doc%idis%i' % (doc.num_id, dis.id)) 
+        return assignemt
+
+    def res_um_doc_por_dis(self, assignemt):
+        for dis in self.disciplinas:
+            self.model.AddExactlyOne(assignemt[(doc.num_id, dis.id)] for doc in self.docentes)
+
+    def res_min_oito_creditos(self, assignemt):
+        for doc in self.docentes:
+            total = 0
+            for dis in self.disciplinas:
+                total += assignemt[(doc.num_id, dis.id)]*dis.qtd_creditos
+            self.model.Add(total >= 8)
 
     def calcula(self):
-        disciplinas = self.leitura_disciplinas()
-        docentes = self.leitura_docentes()
-        model = cp_model.CpModel()
-        assignemt = {}      
+        self.disciplinas = self.leitura_disciplinas()
+        self.docentes = self.leitura_docentes()
+        self.model = cp_model.CpModel()
+        assignemt = self.matriz_de_correlacao()      
 
-        for doc in docentes:
-            for dis in disciplinas:
-                assignemt[(doc.num_id, dis.id)] = model.NewBoolVar('assignemt_doc%idis%i' % (doc.num_id, dis.id)) 
-
-        for dis in disciplinas:
-            model.AddExactlyOne(assignemt[(doc.num_id, dis.id)] for doc in docentes)
-
-        for doc in docentes:
-            total = 0
-            for dis in disciplinas:
-                total += assignemt[(doc.num_id, dis.id)]*dis.qtd_creditos
-            model.Add(total >= 8)
+        self.res_um_doc_por_dis(assignemt)
+        self.res_min_oito_creditos(assignemt)
 
         solver = cp_model.CpSolver()
-        status = solver.Solve(model)
+        status = solver.Solve(self.model)
 
-        print(model)
+        print(self.model)
 
         if status == cp_model.OPTIMAL:
             print('Solution:')
-            for doc in docentes:
-                for dis in disciplinas:
+            for doc in self.docentes:
+                for dis in self.disciplinas:
                     if solver.Value(assignemt[(doc.num_id, dis.id)]) == 1:
                         print('Professor', doc.num_id, 'lecionara a disciplina',  dis.id)
                 print()
