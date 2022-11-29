@@ -46,11 +46,13 @@ class distribuicao_graduacao:
 
     def leitura_disciplinas(self):
         disciplinas = [
-            disciplina(0, 2, 'teste', 'GMM101', [{ "dia_semana": 2, "hora_inicio": 15}], True, ['9A']),
-            disciplina(1, 2, 'teste', 'GMM101', [{ "dia_semana": 5, "hora_inicio": 19}], True, ['26A']),
-            disciplina(2, 4, 'teste', 'GMM102', [{ "dia_semana": 4, "hora_inicio": 9}, { "dia_semana": 5, "hora_inicio": 7}], True, ['13A', '10A', '21A']),
-            disciplina(3, 4, 'teste', 'GMM102', [{ "dia_semana": 2, "hora_inicio": 7}, { "dia_semana": 5, "hora_inicio": 7}], True, ['30C', '30A']),
-            disciplina(4, 6, 'teste', 'GMM104', [{ "dia_semana": 1, "hora_inicio": 8}, { "dia_semana": 3, "hora_inicio": 8}, { "dia_semana": 5, "hora_inicio": 8}], True, ['30G', '30E'])
+            disciplina(0, 2, 'teste', 'GMM101', [{ "dia_semana": 2, "hora_inicio": 13}], True, ['9A']),
+            disciplina(1, 4, 'teste', 'GMM101', [{ "dia_semana": 5, "hora_inicio": 19}], True, ['26A']),
+            disciplina(2, 4, 'teste', 'GMM102', [{ "dia_semana": 4, "hora_inicio": 13}, { "dia_semana": 5, "hora_inicio": 13}], True, ['13A', '10A', '21A']),
+            disciplina(3, 2, 'teste', 'GMM102', [{ "dia_semana": 3, "hora_inicio": 13}, { "dia_semana": 5, "hora_inicio": 15}], True, ['30C', '30A']),
+            disciplina(4, 6, 'teste', 'GMM104',
+            [{ "dia_semana": 1, "hora_inicio": 13}, { "dia_semana": 3, "hora_inicio": 15}, { "dia_semana": 5, "hora_inicio": 17}],
+            True, ['30G', '30E'])
         ]
 
         return disciplinas
@@ -68,42 +70,66 @@ class distribuicao_graduacao:
         self.distribui_restante()
 
     def matriz_de_correlacao(self):
-        assignemt = {}
+        assignment = {}
         for doc in self.docentes:
             for dis in self.disciplinas:
-                assignemt[(doc.num_id, dis.id)] = self.model.NewBoolVar('assignemt_doc%idis%i' % (doc.num_id, dis.id)) 
-        return assignemt
+                assignment[(doc.num_id, dis.id)] = self.model.NewBoolVar('assignment_doc%idis%i' % (doc.num_id, dis.id)) 
+                print(type(assignment[(doc.num_id, dis.id)]))
+        return assignment
 
-    def res_um_doc_por_dis(self, assignemt):
+    def res_um_doc_por_dis(self, assignment):
         for dis in self.disciplinas:
-            self.model.AddExactlyOne(assignemt[(doc.num_id, dis.id)] for doc in self.docentes)
+            self.model.AddExactlyOne(assignment[(doc.num_id, dis.id)] for doc in self.docentes)
 
-    def res_min_oito_creditos(self, assignemt):
+    def res_min_oito_creditos(self, assignment):
         for doc in self.docentes:
             total = 0
             for dis in self.disciplinas:
-                total += assignemt[(doc.num_id, dis.id)]*dis.qtd_creditos
+                total += assignment[(doc.num_id, dis.id)]*dis.qtd_creditos
             self.model.Add(total >= 8)
 
+    def res_conflito_horario(self, assignment):
+
+        for doc in self.docentes:
+            prohibided_pairs = 0
+            for dis in self.disciplinas:
+                parada = False
+                for dis1 in self.disciplinas:
+                    for aula in dis.horarios:
+                        if parada:
+                            break
+                        for aula1 in dis1.horarios:
+                            if ((aula["dia_semana"] == aula1["dia_semana"]-1)  and (aula["hora_inicio"] == 21 and aula1["hora_inicio"] <= 10)):
+                                prohibided_pairs += (assignment[(doc.num_id, dis1.id)] * 1) + (assignment[(doc.num_id, dis.id)].IsEqualTo(1) * 1)
+                                parada = True
+                                break
+                            
+            self.model.Add(prohibided_pairs == 0)
+
+                            
+    #self.model.Add( (assignment[(doc.num_id, dis.id)] != 1 and assignment[(doc.num_id, dis1.id)] != 1)
+    #   ).OnlyEnforceIf(not ((aula["dia_semana"] == 1+aula1["dia_semana"]) 
+    #  and (aula["hora_inicio"] == 21 and aula1["hora_inicio"] < 10)))
+        
     def calcula(self):
         self.disciplinas = self.leitura_disciplinas()
         self.docentes = self.leitura_docentes()
         self.model = cp_model.CpModel()
-        assignemt = self.matriz_de_correlacao()      
+        assignment = self.matriz_de_correlacao()      
 
-        self.res_um_doc_por_dis(assignemt)
-        self.res_min_oito_creditos(assignemt)
+        self.res_um_doc_por_dis(assignment)
+        self.res_min_oito_creditos(assignment)
+        self.res_conflito_horario(assignment)
 
         solver = cp_model.CpSolver()
         status = solver.Solve(self.model)
 
-        print(self.model)
 
         if status == cp_model.OPTIMAL:
             print('Solution:')
             for doc in self.docentes:
                 for dis in self.disciplinas:
-                    if solver.Value(assignemt[(doc.num_id, dis.id)]) == 1:
+                    if solver.Value(assignment[(doc.num_id, dis.id)]) == 1:
                         print('Professor', doc.num_id, 'lecionara a disciplina',  dis.id)
                 print()
             print(f'Number of shift requests met = {solver.ObjectiveValue()}')
