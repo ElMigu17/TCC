@@ -47,8 +47,8 @@ class distribuicao_graduacao:
     def leitura_disciplinas(self):
         disciplinas = [
             disciplina(0, 2, 'teste', 'GMM101', [{ "dia_semana": 2, "hora_inicio": 13}], True, ['9A']),
-            disciplina(1, 4, 'teste', 'GMM101', [{ "dia_semana": 5, "hora_inicio": 19}], True, ['26A']),
-            disciplina(2, 4, 'teste', 'GMM102', [{ "dia_semana": 4, "hora_inicio": 13}, { "dia_semana": 5, "hora_inicio": 13}], True, ['13A', '10A', '21A']),
+            disciplina(1, 4, 'teste', 'GMM101', [{ "dia_semana": 5, "hora_inicio": 7}], True, ['26A']),
+            disciplina(2, 4, 'teste', 'GMM102', [{ "dia_semana": 4, "hora_inicio": 20}, { "dia_semana": 5, "hora_inicio": 13}], True, ['13A', '10A', '21A']),
             disciplina(3, 2, 'teste', 'GMM102', [{ "dia_semana": 3, "hora_inicio": 13}, { "dia_semana": 5, "hora_inicio": 15}], True, ['30C', '30A']),
             disciplina(4, 6, 'teste', 'GMM104',
             [{ "dia_semana": 1, "hora_inicio": 13}, { "dia_semana": 3, "hora_inicio": 15}, { "dia_semana": 5, "hora_inicio": 17}],
@@ -88,28 +88,27 @@ class distribuicao_graduacao:
                 total += assignment[(doc.num_id, dis.id)]*dis.qtd_creditos
             self.model.Add(total >= 8)
 
-    def res_conflito_horario(self, assignment):
+    def res_horario_21_10(self, assignment: dir):
+        
+        ids_pares_proibidos = []
+        for dis in self.disciplinas:
+            for dis1 in self.disciplinas:
+                par = self.res_horario_21_10_aula(dis, dis1)
+                if par != None:
+                    ids_pares_proibidos.append(par)
 
         for doc in self.docentes:
-            prohibided_pairs = 0
-            for dis in self.disciplinas:
-                parada = False
-                for dis1 in self.disciplinas:
-                    for aula in dis.horarios:
-                        if parada:
-                            break
-                        for aula1 in dis1.horarios:
-                            if ((aula["dia_semana"] == aula1["dia_semana"]-1)  and (aula["hora_inicio"] == 21 and aula1["hora_inicio"] <= 10)):
-                                prohibided_pairs += (assignment[(doc.num_id, dis1.id)] * 1) + (assignment[(doc.num_id, dis.id)].IsEqualTo(1) * 1)
-                                parada = True
-                                break
-                            
-            self.model.Add(prohibided_pairs == 0)
+            pares_proibidos = 0
+            for par in ids_pares_proibidos:
+                pares_proibidos += ((assignment[(doc.num_id, par[0])] * 1) + (assignment[(doc.num_id, par[1])] * 1))
+            self.model.Add(pares_proibidos == 0)
 
-                            
-    #self.model.Add( (assignment[(doc.num_id, dis.id)] != 1 and assignment[(doc.num_id, dis1.id)] != 1)
-    #   ).OnlyEnforceIf(not ((aula["dia_semana"] == 1+aula1["dia_semana"]) 
-    #  and (aula["hora_inicio"] == 21 and aula1["hora_inicio"] < 10)))
+    def res_horario_21_10_aula(self, dis: disciplina, dis1: disciplina):
+        for aula in dis.horarios:
+            for aula1 in dis1.horarios:
+                if ((aula["dia_semana"] == aula1["dia_semana"]-1)  and (aula["hora_inicio"] == 21 and aula1["hora_inicio"] <= 10)):
+                    return  [dis.id, dis1.id]
+        return None
         
     def calcula(self):
         self.disciplinas = self.leitura_disciplinas()
@@ -119,7 +118,7 @@ class distribuicao_graduacao:
 
         self.res_um_doc_por_dis(assignment)
         self.res_min_oito_creditos(assignment)
-        self.res_conflito_horario(assignment)
+        self.res_horario_21_10(assignment)
 
         solver = cp_model.CpSolver()
         status = solver.Solve(self.model)
