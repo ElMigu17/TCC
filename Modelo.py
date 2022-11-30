@@ -47,8 +47,8 @@ class distribuicao_graduacao:
     def leitura_disciplinas(self):
         disciplinas = [
             disciplina(0, 2, 'teste', 'GMM101', [{ "dia_semana": 2, "hora_inicio": 13}], True, ['9A']),
-            disciplina(1, 4, 'teste', 'GMM101', [{ "dia_semana": 5, "hora_inicio": 7}], True, ['26A']),
-            disciplina(2, 4, 'teste', 'GMM102', [{ "dia_semana": 4, "hora_inicio": 21}, { "dia_semana": 5, "hora_inicio": 5}], True, ['13A', '10A', '21A']),
+            disciplina(1, 4, 'teste', 'GMM101', [{ "dia_semana": 5, "hora_inicio": 19}], True, ['26A']),
+            disciplina(2, 4, 'teste', 'GMM102', [{ "dia_semana": 4, "hora_inicio": 13}, { "dia_semana": 5, "hora_inicio": 10}], True, ['13A', '10A', '21A']),
             disciplina(3, 2, 'teste', 'GMM102', [{ "dia_semana": 3, "hora_inicio": 13}, { "dia_semana": 5, "hora_inicio": 15}], True, ['30C', '30A']),
             disciplina(4, 6, 'teste', 'GMM104',
             [{ "dia_semana": 1, "hora_inicio": 13}, { "dia_semana": 3, "hora_inicio": 15}, { "dia_semana": 5, "hora_inicio": 17}],
@@ -111,9 +111,13 @@ class distribuicao_graduacao:
                     if (aula["hora_inicio"] == 21 and aula1["hora_inicio"] <= 10):
                         return  [dis.id, dis1.id]
 
-                elif ((dis.id != dis1.id) and 
-                    (aula["dia_semana"] == aula1["dia_semana"]) and 
-                    ((aula["hora_inicio"] == aula1["hora_inicio"]) or (aula["hora_inicio"] == aula1["hora_inicio"]+1) or (aula["hora_inicio"] == aula1["hora_inicio"]-1))):
+                elif ((dis.id != dis1.id) and (aula["dia_semana"] == aula1["dia_semana"])):
+
+                    if ((aula["hora_inicio"] == aula1["hora_inicio"]) or (aula["hora_inicio"] == aula1["hora_inicio"]+1) or (aula["hora_inicio"] == aula1["hora_inicio"]-1)):
+                        return  [dis.id, dis1.id]
+                    
+                    elif ((aula["hora_inicio"] < 11 and aula1["hora_inicio"] > 17) or 
+                          (aula["hora_inicio"] > 17 and aula1["hora_inicio"] < 11)):
                         return  [dis.id, dis1.id]
         return None
         
