@@ -1,4 +1,4 @@
-   
+
 
 class disciplina:
     def __init__(self, pos: int, codigo: str, qtd_creditos: int, horarios: list, eh_graduacao: bool, turmas: list) -> None:
@@ -22,7 +22,7 @@ class docente:
         self.num_disc_anterior = 0
         self.estudantes_fim_anterior = 0
         self.qtd_credito_anterior = 0
-        self.preferencia = []
+        self.preferencia = {}
         self.discplinas = []
         self.disc_per_1 = []  #disciplina periodo -1
         self.disc_per_2 = []
@@ -33,6 +33,8 @@ class docente:
         self.estudantes_fim_anterior = estudantes_fim_anterior
         self.qtd_credito_anterior = qtd_credito_anterior
 
+    def add_preferencia(self, peso, nome):
+        self.preferencia[peso] = nome
 
     def discplinas_com_preferencia(self):
         #TODO
