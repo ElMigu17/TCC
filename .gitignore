@@ -1,0 +1,4 @@
+*.json
+*.xlsx
+.~lock.*
+__pycache__
