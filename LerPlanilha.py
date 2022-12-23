@@ -1,9 +1,5 @@
 import pandas as pd
-from Estruturas_de_Dados import disciplina, docente
-import json
-from datetime import date
-import os
-
+from Estruturas_de_Dados import disciplina, docente, array_manipulator
     
 dia_num = {"Segunda-Feira" : 1,
     "Terça-Feira" : 2,
@@ -15,35 +11,6 @@ dia_num = {"Segunda-Feira" : 1,
 docentes = []
 siape_docente = {}
 disciplinas = []
-
-def ano_semestre() -> str:
-    hoje = date.today()
-    semestre = int(hoje.month/7) + 1
-    
-    return str(hoje.year) + "-" + str(semestre)
-
-def array_object_to_dict(array):
-    my_dict = []
-    for i in array:
-        my_dict.append(i.__dict__)
-    return my_dict
-
-def save_as_json(array: list):
-    nome_arquivo = "disciplina"
-    if type(array[0]) == docente:
-        nome_arquivo = "docente"
-    nome_arquivo += ano_semestre()  
-    path_saves = os.getcwd() + "/saves"
-    out = array_object_to_dict(array)
-    print("Salvando no arquivo: " + nome_arquivo)
-
-    try:
-        os.listdir(path_saves)
-    except FileNotFoundError:
-        os.mkdir(path_saves)
-
-    with open(path_saves + "/" + nome_arquivo + ".json", "w") as outfile:
-        json.dump(out, outfile)       
 
 def importa_dados_disciplinas():
 
@@ -133,7 +100,6 @@ def importa_preferencias():
     for i in range(1, qtd_profs+1):
         for j in Preferencias.index:
             if not pd.isna(Preferencias[i][j]):
-                print(int(Preferencias[i][j]), j)
                 docentes[siape_docente[i]].add_preferencia(int(Preferencias[i][j]), j)
 
 
@@ -143,8 +109,9 @@ def main():
     importa_dados_passados()
     importa_dados_disciplinas()
     importa_preferencias()
-    save_as_json(disciplinas)
-    save_as_json(docentes)
+    am = array_manipulator()
+    am.save_as_json(disciplinas)
+    am.save_as_json(docentes)
 
 if __name__ == '__main__':
     main()
