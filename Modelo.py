@@ -1,6 +1,6 @@
 """Nurse scheduling problem with shift requests."""
 from ortools.sat.python import cp_model
-from Estruturas_de_Dados import disciplina, docente
+from Estruturas_de_Dados import disciplina, docente, array_manipulator
 
 class distribuicao_graduacao:
 
@@ -9,27 +9,46 @@ class distribuicao_graduacao:
         self.inicio_turno_noite = 17
         pass
 
+    # def leitura_disciplinas(self):
+    #     disciplinas = [
+    #         disciplina(0, 'GMM101', 2, [{ "dia_semana": 2, "hora_inicio": "8:00"}], True, ['9A']),
+    #         disciplina(3, 'GMM101', 2, [{ "dia_semana": 3, "hora_inicio": "13:00"}, { "dia_semana": 5, "hora_inicio": "15:00"}], True, ['30C', '30A']),
+    #         disciplina(4, 'GMM101', 6,
+    #         [{ "dia_semana": 1, "hora_inicio": "13:00"}, { "dia_semana": 3, "hora_inicio": "15:00"}, { "dia_semana": 5, "hora_inicio": "19:00"}],
+    #         True, ['30G', '30E'])
+    #     ]
+
+    #     return disciplinas
+
+    # def leitura_docentes(self):
+    #     docentes = [
+    #         docente(0, "claudin", 123456),
+    #         docente(1, "roger", 654321)
+    #     ]
+
+    #     return docentes
+
     def leitura_disciplinas(self):
-        disciplinas = [
-            disciplina(0, 'GMM101', 2, [{ "dia_semana": 2, "hora_inicio": 13}], True, ['9A']),
-            disciplina(1, 'GMM101', 4, [{ "dia_semana": 5, "hora_inicio": 19}], True, ['26A']),
-            disciplina(2, 'GMM101', 4, [{ "dia_semana": 4, "hora_inicio": 13}, { "dia_semana": 5, "hora_inicio": 13}], True, ['13A', '10A', '21A']),
-            disciplina(3, 'GMM101', 2, [{ "dia_semana": 3, "hora_inicio": 13}, { "dia_semana": 5, "hora_inicio": 15}], True, ['30C', '30A']),
-            disciplina(4, 'GMM101', 6,
-            [{ "dia_semana": 1, "hora_inicio": 13}, { "dia_semana": 3, "hora_inicio": 15}, { "dia_semana": 5, "hora_inicio": 17}],
-            True, ['30G', '30E'])
-        ]
+        am = array_manipulator()
+        disciplinas = am.get_json("disciplina2022-2")
 
         return disciplinas
 
     def leitura_docentes(self):
-        docentes = [
-            docente(0, "claudin", 123456),
-            docente(1, "roger", 654321)
-        ]
-
+        am = array_manipulator()
+        docentes = am.get_json("docente2022-2")
         return docentes
         
+    def hora_para_float(self, hor: str):
+        split_hor = hor.split(":")
+
+        split_hor[0] = float(split_hor[0])
+        split_hor[1] = float(split_hor[1])
+
+        split_hor[0] += split_hor[1]/60
+
+        return split_hor[0]
+    
     def principal(self):
         self.distribui_disciplinas_com_prioridade()
         self.distribui_restante()
@@ -39,41 +58,42 @@ class distribuicao_graduacao:
         for doc in self.docentes:
             for dis in self.disciplinas:
                 assignment[(doc.pos, dis.pos)] = self.model.NewBoolVar('assignment_doc%idis%i' % (doc.pos, dis.pos)) 
-                print(type(assignment[(doc.pos, dis.pos)]))
         return assignment
 
     def res_um_doc_por_dis(self, assignment):
         for dis in self.disciplinas:
             self.model.AddExactlyOne(assignment[(doc.pos, dis.pos)] for doc in self.docentes)
-
-    def res_min_oito_creditos(self, assignment):
+            
+    def res_limites_creditos(self, assignment):
         for doc in self.docentes:
             total = 0
             for dis in self.disciplinas:
                 total += assignment[(doc.pos, dis.pos)]*dis.qtd_creditos
             self.model.Add(total >= 8)
+            self.model.Add(total <= 16)
 
     def aux_res_horario(self, dis: disciplina, dis1: disciplina):
         for aula in dis.horarios:
             for aula1 in dis1.horarios:
+                aula_hi = self.hora_para_float(aula["hora_inicio"])
+                aula1_hi = self.hora_para_float(aula1["hora_inicio"])
 
                 if (aula["dia_semana"] == aula1["dia_semana"]-1):
-                    if ((aula["hora_inicio"] >= 21) and aula1["hora_inicio"] <= 10):
+                    if ((aula_hi >= 21) and aula1_hi <= 10):
                         return  [dis.pos, dis1.pos]
 
                 elif (aula1["dia_semana"] == aula["dia_semana"]-1):
-                    if ((aula1["hora_inicio"] >= 21) and aula["hora_inicio"] <= 10):
+                    if ((aula1_hi >= 21) and aula_hi <= 10):
                         return  [dis.pos, dis1.pos]
 
                 elif ((dis.pos != dis1.pos) and (aula["dia_semana"] == aula1["dia_semana"])):
-
-                    if ((aula["hora_inicio"] == aula1["hora_inicio"]) 
-                      or (aula["hora_inicio"] == aula1["hora_inicio"]+1) 
-                      or (aula["hora_inicio"] == aula1["hora_inicio"]-1)):
+                    if ((aula_hi == aula1_hi) 
+                      or (aula_hi == aula1_hi+1) 
+                      or (aula_hi == aula1_hi-1)):
                         return  [dis.pos, dis1.pos]
                     
-                    elif ((aula["hora_inicio"] <= self.fim_turno_manha and aula1["hora_inicio"] >= self.inicio_turno_noite) or 
-                          (aula["hora_inicio"] >= self.inicio_turno_noite and aula1["hora_inicio"] <= self.fim_turno_manha)):
+                    elif ((aula_hi <= self.fim_turno_manha and aula1_hi >= self.inicio_turno_noite) or 
+                          (aula_hi >= self.inicio_turno_noite and aula1_hi <= self.fim_turno_manha)):
                         return  [dis.pos, dis1.pos]
         return None
 
@@ -101,15 +121,25 @@ class distribuicao_graduacao:
         assignment = self.matriz_de_correlacao()      
 
         self.res_um_doc_por_dis(assignment)
-        self.res_min_oito_creditos(assignment)
-        self.res_horario(assignment)
+        self.res_limites_creditos(assignment)
+        #self.res_horario(assignment)
 
         solver = cp_model.CpSolver()
         status = solver.Solve(self.model)
 
 
         if status == cp_model.OPTIMAL:
-            print('Solution:')
+            print('Optimal solution:')
+            for doc in self.docentes:
+                for dis in self.disciplinas:
+                    if solver.Value(assignment[(doc.pos, dis.pos)]) == 1:
+                        print('Professor', doc.pos, 'lecionara a disciplina',  dis.pos)
+                        doc.discplinas.append(dis.pos)
+                print()
+            print(f'Number of shift requests met = {solver.ObjectiveValue()}')
+
+        elif status == cp_model.FEASIBLE:
+            print('Feasible solution:')
             for doc in self.docentes:
                 for dis in self.disciplinas:
                     if solver.Value(assignment[(doc.pos, dis.pos)]) == 1:
@@ -125,7 +155,8 @@ class distribuicao_graduacao:
         print('  - branches : %i' % solver.NumBranches())
         print('  - wall time: %f s' % solver.WallTime())
 
-
+        am = array_manipulator()
+        am.save_as_json(self.docentes, True)
 
 
 def main():
