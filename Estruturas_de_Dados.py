@@ -2,52 +2,14 @@ import json
 from datetime import date
 import os
 
-class array_manipulator:
-    _instance = None
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(array_manipulator, cls).__new__(cls)
-            return cls.instance
-
-    def ano_semestre(self) -> str:
-        hoje = date.today()
-        semestre = int(hoje.month/7) + 1
-        
-        return str(hoje.year) + "-" + str(semestre)
-
-    def array_object_to_dict(self, array):
-        my_dict = []
-        for i in array:
-            my_dict.append(i.__dict__)
-        return my_dict
-
-    def save_as_json(self, array: list):
-        nome_arquivo = "disciplina"
-        if type(array[0]) == docente:
-            nome_arquivo = "docente"
-        nome_arquivo += self.ano_semestre()  
-        path_saves = os.getcwd() + "/saves"
-        out = self.array_object_to_dict(array)
-        print("Salvando no arquivo: " + nome_arquivo)
-
-        try:
-            os.listdir(path_saves)
-        except FileNotFoundError:
-            os.mkdir(path_saves)
-
-        with open(path_saves + "/" + nome_arquivo + ".json", "w") as outfile:
-            json.dump(out, outfile)
-    
-    def get_json(self, nome_arquivo:str) -> list:
-        path_saves = os.getcwd() + "/saves"
-        
-        with open(path_saves + "/" + nome_arquivo + ".json", "r") as outfile:
-            json_object = json.load(outfile)
-
-        return json_object
-
 class disciplina:
-    def __init__(self, pos: int, codigo: str, qtd_creditos: int, horarios: list, eh_graduacao: bool, turmas: list) -> None:
+    def __init__(self, *args) -> None:
+        if type(args[0]) == dict:
+            self.dict_to_disciplina(args[0])
+        else:
+            self.init_pequeno(args[0], args[1], args[2], args[3], args[4], args[5])
+
+    def init_pequeno(self, pos: int, codigo: str, qtd_creditos: int, horarios: list, eh_graduacao: bool, turmas: list):
         self.pos = pos
         self.codigo = codigo
         self.qtd_creditos = qtd_creditos
@@ -65,7 +27,13 @@ class disciplina:
 
 
 class docente:
-    def __init__(self, pos:int, nome: str, siape: int) -> None:
+    def __init__(self, *args) -> None:
+        if type(args[0]) == dict:
+            self.dict_to_docente(args[0])
+        else:
+            self.init_pequeno(args[0], args[1], args[2])
+
+    def init_pequeno(self, pos:int, nome: str, siape: int):
         self.pos = pos
         self.nome = nome
         self.siape = siape
@@ -78,8 +46,8 @@ class docente:
         self.disc_per_2 = []
         self.disc_per_3 = []
     
-    def dict_to_docente(self, my_dict):
 
+    def dict_to_docente(self, my_dict):
         for key in my_dict:
             setattr(self, key, my_dict[key])
 
@@ -107,3 +75,53 @@ class docente:
 
                             return False
         return True
+
+class array_manipulator:
+
+    def ano_semestre(self) -> str:
+        hoje = date.today()
+        semestre = int(hoje.month/7) + 1
+        
+        return str(hoje.year) + "-" + str(semestre)
+
+    def array_object_to_dict(self, array):
+        my_dict = []
+        for i in array:
+            my_dict.append(i.__dict__)
+        return my_dict
+
+    def save_as_json(self, array: list, saida: bool = False):
+        nome_arquivo = "disciplina"
+        if type(array[0]) == docente:
+            nome_arquivo = "docente"
+
+        if saida:
+            nome_arquivo += "_saida"
+        nome_arquivo += self.ano_semestre()  
+        path_saves = os.getcwd() + "/saves"
+        out = self.array_object_to_dict(array)
+        print("Salvando no arquivo: " + nome_arquivo)
+
+        try:
+            os.listdir(path_saves)
+        except FileNotFoundError:
+            os.mkdir(path_saves)
+
+        with open(path_saves + "/" + nome_arquivo + ".json", "w") as outfile:
+            json.dump(out, outfile)
+    
+    def get_json(self, nome_arquivo:str) -> list:
+        path_saves = os.getcwd() + "/saves"
+        array_of_objects = []
+        
+        with open(path_saves + "/" + nome_arquivo + ".json", "r") as outfile:
+            json_object = json.load(outfile)
+
+        class_type = docente
+        if "codigo" in json_object[0]:
+            class_type = disciplina
+
+        for obj in json_object:
+            array_of_objects.append(class_type(obj))
+
+        return array_of_objects
