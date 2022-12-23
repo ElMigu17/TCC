@@ -11,10 +11,12 @@ class distribuicao_graduacao:
 
     # def leitura_disciplinas(self):
     #     disciplinas = [
-    #         disciplina(0, 'GMM101', 2, [{ "dia_semana": 2, "hora_inicio": "8:00"}], True, ['9A']),
-    #         disciplina(3, 'GMM101', 2, [{ "dia_semana": 3, "hora_inicio": "13:00"}, { "dia_semana": 5, "hora_inicio": "15:00"}], True, ['30C', '30A']),
+    #         disciplina(0, 'GMM101', 2, [{ "dia_semana": 3, "hora_inicio": "13:00", "hora_fim": "14:40"}], True, ['9A']),
+    #         disciplina(1, 'GMM101', 4, [{ "dia_semana": 5, "hora_inicio": "19:00", "hora_fim": "20:40"}], True, ['26A']),
+    #         disciplina(2, 'GMM101', 4, [{ "dia_semana": 4, "hora_inicio": "13:00", "hora_fim": "14:40"}, { "dia_semana": 5, "hora_inicio": "13:00", "hora_fim": "14:40"}], True, ['13A', '10A', '21A']),
+    #         disciplina(3, 'GMM101', 2, [{ "dia_semana": 2, "hora_inicio": "8:00", "hora_fim": "9:40"}, { "dia_semana": 5, "hora_inicio": "15:00", "hora_fim": "16:40"}], True, ['30C', '30A']),
     #         disciplina(4, 'GMM101', 6,
-    #         [{ "dia_semana": 1, "hora_inicio": "13:00"}, { "dia_semana": 3, "hora_inicio": "15:00"}, { "dia_semana": 5, "hora_inicio": "19:00"}],
+    #         [{ "dia_semana": 1, "hora_inicio": "13:00", "hora_fim": "9:40"}, { "dia_semana": 3, "hora_inicio": "15:00", "hora_fim": "16:40"}, { "dia_semana": 5, "hora_inicio": "19:00", "hora_fim": "20:40"}],
     #         True, ['30G', '30E'])
     #     ]
 
@@ -45,15 +47,14 @@ class distribuicao_graduacao:
         split_hor[0] = float(split_hor[0])
         split_hor[1] = float(split_hor[1])
 
-        split_hor[0] += split_hor[1]/60
-
+        split_hor[0] += split_hor[1]/100
         return split_hor[0]
     
     def principal(self):
         self.distribui_disciplinas_com_prioridade()
         self.distribui_restante()
 
-    def matriz_de_correlacao(self):
+    def matriz_de_correlacao(self) -> dict:
         assignment = {}
         for doc in self.docentes:
             for dis in self.disciplinas:
@@ -72,45 +73,45 @@ class distribuicao_graduacao:
             self.model.Add(total >= 8)
             self.model.Add(total <= 16)
 
-    def aux_res_horario(self, dis: disciplina, dis1: disciplina):
+    def ha_conflito_horario(self, dis: disciplina, dis1: disciplina) -> bool:
         for aula in dis.horarios:
             for aula1 in dis1.horarios:
                 aula_hi = self.hora_para_float(aula["hora_inicio"])
                 aula1_hi = self.hora_para_float(aula1["hora_inicio"])
+                aula_hf = self.hora_para_float(aula["hora_fim"])
+                aula1_hf = self.hora_para_float(aula1["hora_fim"])
 
                 if (aula["dia_semana"] == aula1["dia_semana"]-1):
                     if ((aula_hi >= 21) and aula1_hi <= 10):
-                        return  [dis.pos, dis1.pos]
+                        return  True
 
                 elif (aula1["dia_semana"] == aula["dia_semana"]-1):
                     if ((aula1_hi >= 21) and aula_hi <= 10):
-                        return  [dis.pos, dis1.pos]
+                        return  True
 
-                elif ((dis.pos != dis1.pos) and (aula["dia_semana"] == aula1["dia_semana"])):
-                    if ((aula_hi == aula1_hi) 
-                      or (aula_hi == aula1_hi+1) 
-                      or (aula_hi == aula1_hi-1)):
-                        return  [dis.pos, dis1.pos]
+                if ((dis.pos != dis1.pos) and (aula["dia_semana"] == aula1["dia_semana"])):
+                    if (((aula_hi <= aula1_hi) and (aula1_hi <= aula_hf))
+                      or ((aula1_hi <= aula_hi) and (aula_hi <= aula1_hf))):
+                        return  True
                     
                     elif ((aula_hi <= self.fim_turno_manha and aula1_hi >= self.inicio_turno_noite) or 
                           (aula_hi >= self.inicio_turno_noite and aula1_hi <= self.fim_turno_manha)):
-                        return  [dis.pos, dis1.pos]
-        return None
+                        return  True
+        return False
 
     def res_horario(self, assignment: dir):
         
         ids_pares_proibidos = []
-        for dis in self.disciplinas:
-            for dis1 in self.disciplinas:
-                par = self.aux_res_horario(dis, dis1)
-                if par != None:
-                    ids_pares_proibidos.append(par)
+        for i in range(len(self.disciplinas)):
+            for j in range(i, len(self.disciplinas)):
+                dis = self.disciplinas
+                if self.ha_conflito_horario(dis[i], dis[j]):
+                    ids_pares_proibidos.append([dis[i].pos, dis[j].pos])
 
         for doc in self.docentes:
-            pares_proibidos = 0
             for par in ids_pares_proibidos:
-                pares_proibidos += ((assignment[(doc.pos, par[0])] * 1) + (assignment[(doc.pos, par[1])] * 1))
-            self.model.Add(pares_proibidos == 0)
+                self.model.Add((assignment[(doc.pos, par[0])] + assignment[(doc.pos, par[1])]) <= 1)
+                
 
 
         
@@ -122,7 +123,7 @@ class distribuicao_graduacao:
 
         self.res_um_doc_por_dis(assignment)
         self.res_limites_creditos(assignment)
-        #self.res_horario(assignment)
+        self.res_horario(assignment)
 
         solver = cp_model.CpSolver()
         status = solver.Solve(self.model)
