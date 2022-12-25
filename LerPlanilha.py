@@ -66,8 +66,12 @@ def importa_dados_profs():
     doscentes_dados = pd.read_excel('Modelos/Doscentes.xlsx')
     index = 0
 
+
     for i in doscentes_dados.index:
-        docentes.append(docente(index, doscentes_dados.iloc[i]['Nome'], int(doscentes_dados.iloc[i]['SIAPE'])))
+        reducao = 0
+        if not pd.isna(doscentes_dados.iloc[i]['Redução']):
+            reducao = int(doscentes_dados.iloc[i]['Redução'])
+        docentes.append(docente(index, doscentes_dados.iloc[i]['Nome'], int(doscentes_dados.iloc[i]['SIAPE']), reducao))
         siape_docente[doscentes_dados.iloc[i]['SIAPE']] = index
         index += 1 
 
@@ -86,18 +90,16 @@ def importa_dados_passados():
         row = anterior.iloc[i]
         if i == 0:
             continue
-        
         num_disc = row_ou_zero(row["Número de Disciplinas"])
         num_estudantes = row_ou_zero(row["nº estudantes fim de período"])
         creditos = row_ou_zero(row["Créditos"])
-
-        docentes[siape_docente[i]].add_info_ultimo_periodo(num_disc, num_estudantes, creditos)
+        siape = row["SIAPE"]
+        docentes[siape_docente[siape]].add_info_ultimo_periodo(num_disc, num_estudantes, creditos)
 
 def importa_preferencias():
-    Preferencias = pd.read_excel('Modelos/Preferencias.xlsx', index_col=0)
+    Preferencias = pd.read_excel('Modelos/Preferencias.xlsx', index_col=0, header=0)
     qtd_profs = int(Preferencias.size/Preferencias.index.size)
-
-    for i in range(1, qtd_profs+1):
+    for i in Preferencias.columns:
         for j in Preferencias.index:
             if not pd.isna(Preferencias[i][j]):
                 docentes[siape_docente[i]].add_preferencia(int(Preferencias[i][j]), j)

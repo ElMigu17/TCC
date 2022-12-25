@@ -70,8 +70,12 @@ class distribuicao_graduacao:
             total = 0
             for dis in self.disciplinas:
                 total += assignment[(doc.pos, dis.pos)]*dis.qtd_creditos
-            self.model.Add(total >= 8)
-            self.model.Add(total <= 16)
+            if doc.reducao == 1:
+                self.model.Add(total >= 5)
+                self.model.Add(total <= 13)
+            else: 
+                self.model.Add(total >= 8)
+                self.model.Add(total <= 16)
 
     def ha_conflito_horario(self, dis: disciplina, dis1: disciplina) -> bool:
         for aula in dis.horarios:
@@ -112,7 +116,14 @@ class distribuicao_graduacao:
             for par in ids_pares_proibidos:
                 self.model.Add((assignment[(doc.pos, par[0])] + assignment[(doc.pos, par[1])]) <= 1)
                 
+    def opt_preferencia(self, assignment):
 
+        for doc in self.docentes:
+            pref_disc = 0
+            for dis in self.disciplinas:
+                if dis.codigo in doc.preferencia:
+                    pref_disc += (assignment[(doc.pos, dis.pos)] * doc.preferencia[dis.codigo])
+            self.model.Maximize(pref_disc)
 
         
     def calcula(self):
@@ -124,6 +135,7 @@ class distribuicao_graduacao:
         self.res_um_doc_por_dis(assignment)
         self.res_limites_creditos(assignment)
         self.res_horario(assignment)
+        self.opt_preferencia(assignment)
 
         solver = cp_model.CpSolver()
         status = solver.Solve(self.model)
@@ -131,24 +143,25 @@ class distribuicao_graduacao:
 
         if status == cp_model.OPTIMAL:
             print('Optimal solution:')
-            for doc in self.docentes:
-                for dis in self.disciplinas:
-                    if solver.Value(assignment[(doc.pos, dis.pos)]) == 1:
-                        print('Professor', doc.pos, 'lecionara a disciplina',  dis.pos)
-                        doc.discplinas.append(dis.pos)
-                print()
-            print(f'Number of shift requests met = {solver.ObjectiveValue()}')
-
         elif status == cp_model.FEASIBLE:
             print('Feasible solution:')
+
+        if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
             for doc in self.docentes:
+                qtd_creditos = 0
                 for dis in self.disciplinas:
                     if solver.Value(assignment[(doc.pos, dis.pos)]) == 1:
-                        print('Professor', doc.pos, 'lecionara a disciplina',  dis.pos)
-                print()
+                        add = ""
+                        if dis.codigo in doc.preferencia:
+                            add = "que possui peso " + str(doc.preferencia[dis.codigo])
+                        print('Professor', doc.pos, 'lecionara a disciplina',  dis.pos, add)
+                        qtd_creditos += dis.qtd_creditos
+                        doc.discplinas.append(dis.pos)
+                print(qtd_creditos)
             print(f'Number of shift requests met = {solver.ObjectiveValue()}')
+            
         else:
-            print('No optimal solution found !')
+            print('No solution found !')
             
         # Statistics.
         print('\nStatistics')

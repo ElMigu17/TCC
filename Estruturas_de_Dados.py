@@ -31,15 +31,16 @@ class docente:
         if type(args[0]) == dict:
             self.dict_to_docente(args[0])
         else:
-            self.init_pequeno(args[0], args[1], args[2])
+            self.init_pequeno(args[0], args[1], args[2], args[3])
 
-    def init_pequeno(self, pos:int, nome: str, siape: int):
+    def init_pequeno(self, pos:int, nome: str, siape: int, reducao: int):
         self.pos = pos
         self.nome = nome
         self.siape = siape
         self.num_disc_anterior = 0
         self.estudantes_fim_anterior = 0
         self.qtd_credito_anterior = 0
+        self.reducao = reducao
         self.preferencia = {}
         self.discplinas = []
         self.disc_per_1 = []  #disciplina periodo -1
@@ -58,23 +59,12 @@ class docente:
         self.qtd_credito_anterior = qtd_credito_anterior
 
     def add_preferencia(self, peso, nome):
-        self.preferencia[peso] = nome
+        self.preferencia[nome] = peso
 
     def discplinas_com_preferencia(self):
         #TODO
         return None
 
-    def nao_ha_conflito(self, horarios_nova_disciplina: list):
-        for d in self.disciplinas:
-            for h_doc in d.horarios:
-                for h_nov in horarios_nova_disciplina:
-                    if h_doc["dia_semana"] == h_nov["dia_semana"]:
-                        if (h_doc["hora_inicio"] == h_nov["hora_inicio"]
-                        or h_doc["hora_inicio"]+1 == h_nov["hora_inicio"]
-                        or h_doc["hora_inicio"]-1 == h_nov["hora_inicio"]):
-
-                            return False
-        return True
 
 class array_manipulator:
 
