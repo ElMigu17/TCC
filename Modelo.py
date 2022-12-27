@@ -1,6 +1,7 @@
 """Nurse scheduling problem with shift requests."""
 from ortools.sat.python import cp_model
 from Estruturas_de_Dados import disciplina, docente, array_manipulator
+import math
 
 class distribuicao_graduacao:
 
@@ -55,27 +56,34 @@ class distribuicao_graduacao:
         self.distribui_restante()
 
     def matriz_de_correlacao(self) -> dict:
-        assignment = {}
+        self.atribuicao = {}
         for doc in self.docentes:
             for dis in self.disciplinas:
-                assignment[(doc.pos, dis.pos)] = self.model.NewBoolVar('assignment_doc%idis%i' % (doc.pos, dis.pos)) 
-        return assignment
+                self.atribuicao[(doc.pos, dis.pos)] = self.modelo.NewBoolVar('atribuicao_doc%idis%i' % (doc.pos, dis.pos)) 
+    
 
-    def res_um_doc_por_dis(self, assignment):
+    def res_um_doc_por_dis(self):
         for dis in self.disciplinas:
-            self.model.AddExactlyOne(assignment[(doc.pos, dis.pos)] for doc in self.docentes)
+            self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)] for doc in self.docentes)
             
-    def res_limites_creditos(self, assignment):
+    def res_limites_creditos(self):
+        total_creditos = sum(dis.qtd_creditos for dis in self.disciplinas)
+        media_creditos = int(total_creditos/len(self.docentes))
+        print(media_creditos)
+        squares = []
         for doc in self.docentes:
             total = 0
             for dis in self.disciplinas:
-                total += assignment[(doc.pos, dis.pos)]*dis.qtd_creditos
+                total += self.atribuicao[(doc.pos, dis.pos)]*dis.qtd_creditos
             if doc.reducao == 1:
-                self.model.Add(total >= 5)
-                self.model.Add(total <= 13)
+                self.modelo.Add(total >= 5)
+                self.modelo.Add(total <= 13)
             else: 
-                self.model.Add(total >= 8)
-                self.model.Add(total <= 16)
+                self.modelo.Add(total >= 8)
+                self.modelo.Add(total <= 16)
+                aux = media_creditos-total
+                squares.append(self.modelo.NewIntVar(-(16**2), (16**2), f'diff_doc{doc.pos}'))
+                self.modelo.AddMultiplicationEquality(squares[-1], [aux, aux])
 
     def ha_conflito_horario(self, dis: disciplina, dis1: disciplina) -> bool:
         for aula in dis.horarios:
@@ -103,7 +111,7 @@ class distribuicao_graduacao:
                         return  True
         return False
 
-    def res_horario(self, assignment: dict):
+    def res_horario(self):
         
         ids_pares_proibidos = []
         for i in range(len(self.disciplinas)):
@@ -114,43 +122,45 @@ class distribuicao_graduacao:
 
         for doc in self.docentes:
             for par in ids_pares_proibidos:
-                self.model.Add((assignment[(doc.pos, par[0])] + assignment[(doc.pos, par[1])]) <= 1)
+                self.modelo.Add((self.atribuicao[(doc.pos, par[0])] + self.atribuicao[(doc.pos, par[1])]) <= 1)
                 
-    def res_preferencia(self, assignment: dict):
+    def res_preferencia(self):
         for doc in self.docentes:
             for pre in doc.preferencia:
                 if pre in doc.disc_per_1 and not ( pre in doc.disc_per_2 and pre in doc.disc_per_3 ):
                     aux = 0
                     for dis in self.disciplinas:
-                        aux += assignment[(doc.pos, dis.pos)]
-                    self.model.Add(aux >= doc.disc_per_1.count(pre))
+                        aux += self.atribuicao[(doc.pos, dis.pos)]
+                    self.modelo.Add(aux >= doc.disc_per_1.count(pre))
 
 
-    def opt_interesse(self, assignment):
+    def opt_interesse(self):
 
         for doc in self.docentes:
             pref_disc = 0
             for dis in self.disciplinas:
                 if dis.codigo in doc.preferencia:
-                    pref_disc += (assignment[(doc.pos, dis.pos)] * doc.preferencia[dis.codigo])
-            self.model.Maximize(pref_disc)
+                    pref_disc += (self.atribuicao[(doc.pos, dis.pos)] * doc.preferencia[dis.codigo])
+            self.modelo.Maximize(pref_disc)
 
         
     def calcula(self):
         self.disciplinas = self.leitura_disciplinas()
         self.docentes = self.leitura_docentes()
-        self.model = cp_model.CpModel()
-        assignment = self.matriz_de_correlacao()      
+        self.modelo = cp_model.CpModel()
+        self.matriz_de_correlacao()      
 
-        self.res_um_doc_por_dis(assignment)
-        self.res_limites_creditos(assignment)
-        self.res_horario(assignment)
-        self.res_preferencia(assignment)
-        self.opt_interesse(assignment)
+        self.res_limites_creditos()
+        print(self.modelo)
+        self.res_um_doc_por_dis()
+        self.res_horario()
+        self.res_preferencia()
+        self.opt_interesse()
+
 
         solver = cp_model.CpSolver()
         #solver.parameters.log_search_progress = True
-        status = solver.Solve(self.model)
+        status = solver.Solve(self.modelo)
 
 
         if status == cp_model.OPTIMAL:
@@ -161,26 +171,34 @@ class distribuicao_graduacao:
         if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
             qtd_preferencias = 0
             qtd_preferencias_peso = 0
+            array_creditos = []
 
             for doc in self.docentes:
-                qtd_creditos = 0         
+                array_creditos.append(0)
 
                 for dis in self.disciplinas:
-                    if solver.Value(assignment[(doc.pos, dis.pos)]) == 1:
+                    if solver.Value(self.atribuicao[(doc.pos, dis.pos)]) == 1:
                         add = ""
                         if dis.codigo in doc.preferencia:
                             add = "que possui preferencia " + str(doc.preferencia[dis.codigo])
                             qtd_preferencias += 1
                             qtd_preferencias_peso += doc.preferencia[dis.codigo]
                         print('Docente', doc.pos, 'lecionara a disciplina',  dis.pos, add)
-                        qtd_creditos += dis.qtd_creditos
+                        array_creditos[-1] += dis.qtd_creditos
                         doc.discplinas.append(dis.pos)
-                print("Quantidade total de creditos:", qtd_creditos)
+                print("Quantidade total de creditos:", array_creditos[-1])
+
                 print()
             print('Quantidade de preferencias atendidas =', qtd_preferencias, qtd_preferencias_peso)
+            media_creditos = sum(array_creditos)/len(self.docentes)
+            print('Media de créditos: ', media_creditos)
+            variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
+            print('Variancia de créditos: ', variancia)
+            print('Media padrão de créditos: ', math.sqrt(variancia))
             
         else:
             print('No solution found !')
+            #print(solver.SolutionInfo())
             
         # Statistics.
         print('\nStatistics')
