@@ -103,7 +103,7 @@ class distribuicao_graduacao:
                         return  True
         return False
 
-    def res_horario(self, assignment: dir):
+    def res_horario(self, assignment: dict):
         
         ids_pares_proibidos = []
         for i in range(len(self.disciplinas)):
@@ -116,7 +116,17 @@ class distribuicao_graduacao:
             for par in ids_pares_proibidos:
                 self.model.Add((assignment[(doc.pos, par[0])] + assignment[(doc.pos, par[1])]) <= 1)
                 
-    def opt_preferencia(self, assignment):
+    def res_preferencia(self, assignment: dict):
+        for doc in self.docentes:
+            for pre in doc.preferencia:
+                if pre in doc.disc_per_1 and not ( pre in doc.disc_per_2 and pre in doc.disc_per_3 ):
+                    aux = 0
+                    for dis in self.disciplinas:
+                        aux += assignment[(doc.pos, dis.pos)]
+                    self.model.Add(aux >= doc.disc_per_1.count(pre))
+
+
+    def opt_interesse(self, assignment):
 
         for doc in self.docentes:
             pref_disc = 0
@@ -135,9 +145,11 @@ class distribuicao_graduacao:
         self.res_um_doc_por_dis(assignment)
         self.res_limites_creditos(assignment)
         self.res_horario(assignment)
-        self.opt_preferencia(assignment)
+        self.res_preferencia(assignment)
+        self.opt_interesse(assignment)
 
         solver = cp_model.CpSolver()
+        #solver.parameters.log_search_progress = True
         status = solver.Solve(self.model)
 
 
@@ -147,18 +159,25 @@ class distribuicao_graduacao:
             print('Feasible solution:')
 
         if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+            qtd_preferencias = 0
+            qtd_preferencias_peso = 0
+
             for doc in self.docentes:
-                qtd_creditos = 0
+                qtd_creditos = 0         
+
                 for dis in self.disciplinas:
                     if solver.Value(assignment[(doc.pos, dis.pos)]) == 1:
                         add = ""
                         if dis.codigo in doc.preferencia:
-                            add = "que possui peso " + str(doc.preferencia[dis.codigo])
-                        print('Professor', doc.pos, 'lecionara a disciplina',  dis.pos, add)
+                            add = "que possui preferencia " + str(doc.preferencia[dis.codigo])
+                            qtd_preferencias += 1
+                            qtd_preferencias_peso += doc.preferencia[dis.codigo]
+                        print('Docente', doc.pos, 'lecionara a disciplina',  dis.pos, add)
                         qtd_creditos += dis.qtd_creditos
                         doc.discplinas.append(dis.pos)
-                print(qtd_creditos)
-            print(f'Number of shift requests met = {solver.ObjectiveValue()}')
+                print("Quantidade total de creditos:", qtd_creditos)
+                print()
+            print('Quantidade de preferencias atendidas =', qtd_preferencias, qtd_preferencias_peso)
             
         else:
             print('No solution found !')
