@@ -82,8 +82,8 @@ class distribuicao_graduacao:
                 self.modelo.Add(total >= 8)
                 self.modelo.Add(total <= 16)
                 aux = media_creditos-total
-                squares.append(self.modelo.NewIntVar(-(16**2), (16**2), f'diff_doc{doc.pos}'))
-                self.modelo.AddMultiplicationEquality(squares[-1], [aux, aux])
+                #squares.append(self.modelo.NewIntVar(-(16**2), (16**2), f'diff_doc{doc.pos}'))
+                #self.modelo.AddMultiplicationEquality(squares[-1], [aux, aux])
 
     def ha_conflito_horario(self, dis: disciplina, dis1: disciplina) -> bool:
         for aula in dis.horarios:
