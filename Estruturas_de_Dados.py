@@ -25,7 +25,13 @@ class disciplina:
     def show(self):
         print(self.pos, self.codigo, self.qtd_creditos, self.docente, self.horarios, self.eh_graduacao, self.turmas)
 
-
+    def string_cod_turma(self):
+        turmas = self.turmas
+        turmas.sort()
+        turmas_as_string = ""
+        for turma in turmas:
+            turmas_as_string += turma
+        return self.codigo + "_" + turmas_as_string  
 class docente:
     def __init__(self, *args) -> None:
         if type(args[0]) == dict:
@@ -42,7 +48,7 @@ class docente:
         self.qtd_credito_anterior = 0
         self.reducao = reducao
         self.preferencia = {}
-        self.discplinas = []
+        self.disciplinas = []
         self.disc_per_1 = []  #disciplina periodo -1
         self.disc_per_2 = []
         self.disc_per_3 = []
@@ -61,7 +67,7 @@ class docente:
     def add_preferencia(self, peso, nome):
         self.preferencia[nome] = peso
 
-    def discplinas_com_preferencia(self):
+    def disciplinas_com_preferencia(self):
         #TODO
         return None
 

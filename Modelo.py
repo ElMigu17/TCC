@@ -8,6 +8,9 @@ class distribuicao_graduacao:
     def __init__(self) -> None:
         self.fim_turno_manha = 11
         self.inicio_turno_noite = 17
+        self.limite_inferior = 8
+        self.limite_superior_padrao = 16
+        self.limite_superior_reduzido = 16
         pass
 
     # def leitura_disciplinas(self):
@@ -67,23 +70,17 @@ class distribuicao_graduacao:
             self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)] for doc in self.docentes)
             
     def res_limites_creditos(self):
-        total_creditos = sum(dis.qtd_creditos for dis in self.disciplinas)
-        media_creditos = int(total_creditos/len(self.docentes))
-        print(media_creditos)
-        squares = []
+
         for doc in self.docentes:
             total = 0
             for dis in self.disciplinas:
                 total += self.atribuicao[(doc.pos, dis.pos)]*dis.qtd_creditos
+
+            self.modelo.Add(total >= self.limite_inferior)
             if doc.reducao == 1:
-                self.modelo.Add(total >= 5)
-                self.modelo.Add(total <= 13)
+                self.modelo.Add(total <= self.limite_superior_reduzido)
             else: 
-                self.modelo.Add(total >= 8)
-                self.modelo.Add(total <= 16)
-                aux = media_creditos-total
-                #squares.append(self.modelo.NewIntVar(-(16**2), (16**2), f'diff_doc{doc.pos}'))
-                #self.modelo.AddMultiplicationEquality(squares[-1], [aux, aux])
+                self.modelo.Add(total <= self.limite_superior_padrao)
 
     def ha_conflito_horario(self, dis: disciplina, dis1: disciplina) -> bool:
         for aula in dis.horarios:
@@ -123,15 +120,14 @@ class distribuicao_graduacao:
         for doc in self.docentes:
             for par in ids_pares_proibidos:
                 self.modelo.Add((self.atribuicao[(doc.pos, par[0])] + self.atribuicao[(doc.pos, par[1])]) <= 1)
-                
+
     def res_preferencia(self):
         for doc in self.docentes:
             for pre in doc.preferencia:
                 if pre in doc.disc_per_1 and not ( pre in doc.disc_per_2 and pre in doc.disc_per_3 ):
-                    aux = 0
                     for dis in self.disciplinas:
-                        aux += self.atribuicao[(doc.pos, dis.pos)]
-                    self.modelo.Add(aux >= doc.disc_per_1.count(pre))
+                        if dis.string_cod_turma() == pre:
+                            self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)])
 
 
     def opt_interesse(self):
@@ -151,9 +147,8 @@ class distribuicao_graduacao:
         self.matriz_de_correlacao()      
 
         self.res_limites_creditos()
-        print(self.modelo)
         self.res_um_doc_por_dis()
-        self.res_horario()
+        #self.res_horario()
         self.res_preferencia()
         self.opt_interesse()
 
@@ -179,13 +174,14 @@ class distribuicao_graduacao:
                 for dis in self.disciplinas:
                     if solver.Value(self.atribuicao[(doc.pos, dis.pos)]) == 1:
                         add = ""
-                        if dis.codigo in doc.preferencia:
-                            add = "que possui preferencia " + str(doc.preferencia[dis.codigo])
+                        if dis.string_cod_turma() in doc.preferencia:
+                            
+                            add = "que possui preferencia " + str(doc.preferencia[dis.string_cod_turma()])
                             qtd_preferencias += 1
-                            qtd_preferencias_peso += doc.preferencia[dis.codigo]
+                            qtd_preferencias_peso += doc.preferencia[dis.string_cod_turma()]
                         print('Docente', doc.pos, 'lecionara a disciplina',  dis.pos, add)
                         array_creditos[-1] += dis.qtd_creditos
-                        doc.discplinas.append(dis.pos)
+                        doc.disciplinas.append(dis.string_cod_turma())
                 print("Quantidade total de creditos:", array_creditos[-1])
 
                 print()
@@ -194,20 +190,22 @@ class distribuicao_graduacao:
             print('Media de créditos: ', media_creditos)
             variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
             print('Variancia de créditos: ', variancia)
-            print('Media padrão de créditos: ', math.sqrt(variancia))
+            print('Desvio padrão de créditos: ', math.sqrt(variancia))
+
+
+            am = array_manipulator()
+            am.save_as_json(self.docentes, True)
             
+
+
         else:
             print('No solution found !')
-            #print(solver.SolutionInfo())
             
-        # Statistics.
         print('\nStatistics')
         print('  - conflicts: %i' % solver.NumConflicts())
         print('  - branches : %i' % solver.NumBranches())
         print('  - wall time: %f s' % solver.WallTime())
 
-        am = array_manipulator()
-        am.save_as_json(self.docentes, True)
 
 
 def main():
