@@ -9,10 +9,11 @@ class distribuicao_graduacao:
         self.fim_turno_manha = 11
         self.inicio_turno_noite = 17
         self.limite_inferior = 8
-        self.limite_superior_padrao = 16
-        self.limite_superior_reduzido = 16
+        self.limite_superior_padrao = 14
+        self.limite_superior_reduzido = 12
 
         self.peso_infracao_horario = 0.5
+        self.peso_desempate = 1
 
         self.restricao_horario_turnos = False
         self.restricao_horario_23_18 = False
@@ -121,6 +122,8 @@ class distribuicao_graduacao:
                         if dis.string_cod_turma() == pre:
                             self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)])
 
+###Otimização
+
     def insere_ordenado(self, lista: list, doc: docente, cod_turma_dis: str):
         i = 0
         while(i < len(lista) and 
@@ -174,11 +177,11 @@ class distribuicao_graduacao:
         return soma_peso
 
     def opt_desempate(self):
-        hanking = self.hankeia_por_disciplina()
+        self.hanking = self.hankeia_por_disciplina()
 
         opt_formula = 0
-        for h in hanking:
-            h_doc_list = hanking[h]
+        for h in self.hanking:
+            h_doc_list = self.hanking[h]
             tam = len(h_doc_list)
 
             for i in range(len(h_doc_list)):
@@ -188,9 +191,12 @@ class distribuicao_graduacao:
         return opt_formula
 
 
+# Exibições
+
     def exibe_solucao_achada(self, solver):
         qtd_preferencias = 0
         qtd_preferencias_peso = 0
+        qtd_primeir_hanking_ganhador = 0
         array_creditos = []
 
         for doc in self.docentes:
@@ -204,13 +210,22 @@ class distribuicao_graduacao:
                         add = "que possui preferencia " + str(doc.preferencia[dis.string_cod_turma()])
                         qtd_preferencias += 1
                         qtd_preferencias_peso += doc.preferencia[dis.string_cod_turma()]
+                    
+                    if dis.pos in self.hanking:
+                        if doc == self.hanking[dis.pos][0]:
+                            add += ", que era o primeiro no hanking"
+                            qtd_primeir_hanking_ganhador += 1
+
+
                     print('Docente', doc.pos, 'lecionara a disciplina',  dis.pos, add)
                     array_creditos[-1] += dis.qtd_creditos
                     doc.disciplinas.append(dis.string_cod_turma())
             print("Quantidade total de creditos:", array_creditos[-1])
 
             print()
-        print('Quantidade de preferencias atendidas =', qtd_preferencias, qtd_preferencias_peso)
+        print('Preferencias atendidas =', qtd_preferencias)
+        print('Total de pesos de preferencia atendidos =', qtd_preferencias_peso)
+        print('Quantidade de primeiros lugar no hanking ganhadores =', qtd_primeir_hanking_ganhador)
         media_creditos = sum(array_creditos)/len(self.docentes)
         print('Media de créditos: ', media_creditos)
         variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
@@ -258,7 +273,7 @@ class distribuicao_graduacao:
         
         soma_opt = self.opt_interesse()
         soma_opt += (self.opt_horarios() * self.peso_infracao_horario)
-        soma_opt += self.opt_desempate()
+        soma_opt += (self.opt_desempate() * self.peso_desempate)
 
         self.modelo.Maximize(soma_opt)
 
