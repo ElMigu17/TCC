@@ -32,6 +32,8 @@ class disciplina:
         for turma in turmas:
             turmas_as_string += turma
         return self.codigo + "_" + turmas_as_string  
+
+
 class docente:
     def __init__(self, *args) -> None:
         if type(args[0]) == dict:
@@ -64,12 +66,33 @@ class docente:
         self.estudantes_fim_anterior = estudantes_fim_anterior
         self.qtd_credito_anterior = qtd_credito_anterior
 
-    def add_preferencia(self, peso, nome):
+    def add_preferencia(self, peso, nome) -> None:
         self.preferencia[nome] = peso
 
-    def disciplinas_com_preferencia(self):
-        #TODO
-        return None
+    def tem_mais_preferencia_que(self, doc, cod_turma) -> bool:
+        if self.num_disc_anterior > doc.num_disc_anterior:
+            return True
+        elif self.num_disc_anterior < doc.num_disc_anterior:
+            return False
+        
+        if self.estudantes_fim_anterior > doc.estudantes_fim_anterior:
+            return True
+        elif self.estudantes_fim_anterior > doc.estudantes_fim_anterior:
+            return False
+
+        if self.ultima_vez_que_ministrou(cod_turma) == doc.ultima_vez_que_ministrou(cod_turma):
+            return doc.nome < self.nome
+    
+    def ultima_vez_que_ministrou(self, cod_turma) -> int:
+        
+        if cod_turma in self.disc_per_1:
+            return 1
+        if cod_turma in self.disc_per_2:
+            return 2
+        if cod_turma in self.disc_per_3:
+            return 3
+        return 4
+
 
 
 class array_manipulator:

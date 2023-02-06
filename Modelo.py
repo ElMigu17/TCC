@@ -121,10 +121,34 @@ class distribuicao_graduacao:
                         if dis.string_cod_turma() == pre:
                             self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)])
 
+    def insere_ordenado(self, lista: list, doc: docente, cod_turma_dis: str):
+        i = 0
+        while(i < len(lista) and 
+            lista[i].tem_mais_preferencia_que(doc, cod_turma_dis)):
+            i += 1
+        
+        lista.insert(i, doc)
+        
+
+    def hankeia_por_disciplina(self):
+        hanking = {}
+        for dis in self.disciplinas:
+            cod_turma_dis = dis.string_cod_turma()
+            hanking[dis.pos] = []
+
+            for doc in self.docentes:
+                if cod_turma_dis in doc.preferencia:
+                    self.insere_ordenado(hanking[dis.pos], doc, cod_turma_dis)
+            
+            if len(hanking[dis.pos]) <= 1:
+                hanking.pop(dis.pos, None)
+        
+        for i in hanking:
+            print(i, hanking[i])
+        return hanking    
 
     def opt_interesse(self):
         pref_disc = 0
-
         for doc in self.docentes:
             for dis in self.disciplinas:
                 if dis.codigo in doc.preferencia:
@@ -142,12 +166,27 @@ class distribuicao_graduacao:
         ids_pares_proibidos = self.todos_conflitos_horario()
         for doc in self.docentes:
             for par in ids_pares_proibidos:
-                soma_peso += -self.atribuicao[(doc.pos, par[0])] + -self.atribuicao[(doc.pos, par[1])]
-        
+                soma_peso += -(self.atribuicao[(doc.pos, par[0])] + self.atribuicao[(doc.pos, par[1])])*1
+
         self.restricao_horario_23_18 = aux_restricao_horario_23_18        
         self.restricao_horario_turnos = aux_restricao_horario_turnos
 
         return soma_peso
+
+    def opt_desempate(self):
+        hanking = self.hankeia_por_disciplina()
+
+        opt_formula = 0
+        for h in hanking:
+            h_doc_list = hanking[h]
+            tam = len(h_doc_list)
+
+            for i in range(len(h_doc_list)):
+                opt_formula += (self.atribuicao[(h_doc_list[i].pos, h)] * (tam-1))
+
+        print(opt_formula)
+        return opt_formula
+
 
     def exibe_solucao_achada(self, solver):
         qtd_preferencias = 0
@@ -218,7 +257,9 @@ class distribuicao_graduacao:
         self.res_prioridade()
         
         soma_opt = self.opt_interesse()
-        soma_opt += self.opt_horarios() * self.peso_infracao_horario
+        soma_opt += (self.opt_horarios() * self.peso_infracao_horario)
+        soma_opt += self.opt_desempate()
+
         self.modelo.Maximize(soma_opt)
 
         self.verifica_solucao()
