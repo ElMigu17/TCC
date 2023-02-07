@@ -134,21 +134,21 @@ class distribuicao_graduacao:
         
 
     def hankeia_por_disciplina(self):
-        hanking = {}
+        ranking = {}
         for dis in self.disciplinas:
             cod_turma_dis = dis.string_cod_turma()
-            hanking[dis.pos] = []
+            ranking[dis.pos] = []
 
             for doc in self.docentes:
                 if cod_turma_dis in doc.preferencia:
-                    self.insere_ordenado(hanking[dis.pos], doc, cod_turma_dis)
+                    self.insere_ordenado(ranking[dis.pos], doc, cod_turma_dis)
             
-            if len(hanking[dis.pos]) <= 1:
-                hanking.pop(dis.pos, None)
+            if len(ranking[dis.pos]) <= 1:
+                ranking.pop(dis.pos, None)
         
-        for i in hanking:
-            print(i, hanking[i])
-        return hanking    
+        for i in ranking:
+            print(i, ranking[i])
+        return ranking    
 
     def opt_interesse(self):
         pref_disc = 0
@@ -177,11 +177,11 @@ class distribuicao_graduacao:
         return soma_peso
 
     def opt_desempate(self):
-        self.hanking = self.hankeia_por_disciplina()
+        self.ranking = self.hankeia_por_disciplina()
 
         opt_formula = 0
-        for h in self.hanking:
-            h_doc_list = self.hanking[h]
+        for h in self.ranking:
+            h_doc_list = self.ranking[h]
             tam = len(h_doc_list)
 
             for i in range(len(h_doc_list)):
@@ -196,7 +196,7 @@ class distribuicao_graduacao:
     def exibe_solucao_achada(self, solver):
         qtd_preferencias = 0
         qtd_preferencias_peso = 0
-        qtd_primeir_hanking_ganhador = 0
+        qtd_primeir_ranking_ganhador = 0
         array_creditos = []
 
         for doc in self.docentes:
@@ -211,10 +211,10 @@ class distribuicao_graduacao:
                         qtd_preferencias += 1
                         qtd_preferencias_peso += doc.preferencia[dis.string_cod_turma()]
                     
-                    if dis.pos in self.hanking:
-                        if doc == self.hanking[dis.pos][0]:
-                            add += ", que era o primeiro no hanking"
-                            qtd_primeir_hanking_ganhador += 1
+                    if dis.pos in self.ranking:
+                        if doc == self.ranking[dis.pos][0]:
+                            add += ", que era o primeiro no ranking"
+                            qtd_primeir_ranking_ganhador += 1
 
 
                     print('Docente', doc.pos, 'lecionara a disciplina',  dis.pos, add)
@@ -225,7 +225,7 @@ class distribuicao_graduacao:
             print()
         print('Preferencias atendidas =', qtd_preferencias)
         print('Total de pesos de preferencia atendidos =', qtd_preferencias_peso)
-        print('Quantidade de primeiros lugar no hanking ganhadores =', qtd_primeir_hanking_ganhador)
+        print('Quantidade de primeiros lugar no ranking ganhadores =', qtd_primeir_ranking_ganhador)
         media_creditos = sum(array_creditos)/len(self.docentes)
         print('Media de créditos: ', media_creditos)
         variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
