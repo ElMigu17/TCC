@@ -19,8 +19,6 @@ class distribuicao_graduacao:
         self.restricao_horario_23_18 = False
         
 
-
-
     def leitura_disciplinas(self):
         am = array_manipulator()
         disciplinas = am.get_json("disciplina2022-2")
@@ -147,7 +145,7 @@ class distribuicao_graduacao:
                 ranking.pop(dis.pos, None)
         
         for i in ranking:
-            print(i, ranking[i])
+            print("aaaaaaaaaaaaaaaaaaaaaa", i, ranking[i])
         return ranking    
 
     def opt_interesse(self):
