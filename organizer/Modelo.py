@@ -1,6 +1,6 @@
 """Nurse scheduling problem with shift requests."""
 from ortools.sat.python import cp_model
-from Estruturas_de_Dados import disciplina, docente, array_manipulator
+from organizer.Estruturas_de_Dados import disciplina, docente, array_manipulator
 import math
 
 class distribuicao_graduacao:
@@ -19,15 +19,10 @@ class distribuicao_graduacao:
         self.restricao_horario_23_18 = False
         
 
-    def leitura_disciplinas(self):
+    def leitura_arquivo(self, name):
         am = array_manipulator()
-        disciplinas = am.get_json("disciplina2022-2")
+        docentes = am.get_json(name)
 
-        return disciplinas
-
-    def leitura_docentes(self):
-        am = array_manipulator()
-        docentes = am.get_json("docente2022-2")
         return docentes
         
     def hora_para_float(self, hor: str):
@@ -49,7 +44,6 @@ class distribuicao_graduacao:
             for dis in self.disciplinas:
                 self.atribuicao[(doc.pos, dis.pos)] = self.modelo.NewBoolVar('atribuicao_doc%idis%i' % (doc.pos, dis.pos)) 
     
-
     def res_um_doc_por_dis(self):
         for dis in self.disciplinas:
             self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)] for doc in self.docentes)
@@ -130,7 +124,6 @@ class distribuicao_graduacao:
         
         lista.insert(i, doc)
         
-
     def hankeia_por_disciplina(self):
         ranking = {}
         for dis in self.disciplinas:
@@ -144,8 +137,6 @@ class distribuicao_graduacao:
             if len(ranking[dis.pos]) <= 1:
                 ranking.pop(dis.pos, None)
         
-        for i in ranking:
-            print("aaaaaaaaaaaaaaaaaaaaaa", i, ranking[i])
         return ranking    
 
     def opt_interesse(self):
@@ -185,7 +176,6 @@ class distribuicao_graduacao:
             for i in range(len(h_doc_list)):
                 opt_formula += (self.atribuicao[(h_doc_list[i].pos, h)] * (tam-1))
 
-        print(opt_formula)
         return opt_formula
 
 
@@ -258,9 +248,13 @@ class distribuicao_graduacao:
         print('  - wall time: %f s' % solver.WallTime())
         
         
-    def calcula(self):
-        self.disciplinas = self.leitura_disciplinas()
-        self.docentes = self.leitura_docentes()
+    def calcula(self, disciplinas):
+        am = array_manipulator()
+        
+        self.disciplinas = am.dict_to_obj(disciplinas)
+        docentes = self.leitura_arquivo("docente2022-2")
+        self.docentes = docentes 
+
         self.modelo = cp_model.CpModel()
         self.matriz_de_correlacao()      
 
@@ -279,10 +273,10 @@ class distribuicao_graduacao:
 
 
 
-
 def main():
     dg = distribuicao_graduacao()
-    dg.calcula()
+    disciplinas = dg.leitura_arquivo("disciplina2022-2")
+    dg.calcula(disciplinas)
 
 if __name__ == '__main__':
     main()

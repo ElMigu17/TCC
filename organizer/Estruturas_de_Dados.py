@@ -130,17 +130,30 @@ class array_manipulator:
             json.dump(out, outfile)
     
     def get_json(self, nome_arquivo:str) -> list:
-        path_saves = os.getcwd() + "/saves"
+        path_saves = os.getcwd() + "/organizer/saves/" + nome_arquivo + ".json"
+        
+        with open(path_saves, "r") as outfile:
+            json_object = json.load(outfile)
+        
+        return self.dict_to_obj(json_object)
+        
+    def dict_to_obj(self, dictionary):
         array_of_objects = []
         
-        with open(path_saves + "/" + nome_arquivo + ".json", "r") as outfile:
-            json_object = json.load(outfile)
-
         class_type = docente
-        if "codigo" in json_object[0]:
-            class_type = disciplina
+        if "codigo" in dictionary[0]: class_type = disciplina
 
-        for obj in json_object:
+        for obj in dictionary:
             array_of_objects.append(class_type(obj))
 
         return array_of_objects
+    
+    def dict_cod_turma(self, disciplinas: list):
+        
+        dictionary = {}
+
+        for disc in disciplinas:
+            dictionary[disc.string_cod_turma()] = disc.__dict__
+        
+        return dictionary 
+

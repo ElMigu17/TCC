@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    </head>
+    <body>
+
+        <form id="envioArquivos" >
+            <label for="disciplinas">Arquivo json de disciplinas:</label><br>
+            <input type="file" id="disciplinas" name="disciplinas"><br><br>
+
+            <label for="docentes">Arquivo json de docentes:</label><br>
+            <input type="file" id="docentes" name="docentes"><br><br>
+
+            <input type="submit" value="Submit">
+        </form>
+
+        <button onclick="optimize()">Otimizar</button>
+
+        <script>
+            function optimize(){
+                $.ajax({
+                    type: "POST",
+                    url: "optimize",
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        // Handle the response from the server
+                        console.log(response);
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle any errors that occur during the request
+                        console.error(error);
+                    }
+                });
+            }
+             
+            $(document).ready(function() {
+                $('#envioArquivos').submit(function(e) {
+                    e.preventDefault(); // prevent the form from submitting normally
+                    var data = new FormData($(this)[0]); // serialize the form data
+                    console.log(data)
+
+                    $.ajax({
+                        type: "POST",
+                        url: "upload",
+                        data: data,
+                        processData: false,
+                        contentType: false,
+
+                        dataType: 'json',
+                        success: function(response) {
+                            // Handle the response from the server
+                            console.log(response);
+                        },
+                        error: function(xhr, status, error) {
+                            // Handle any errors that occur during the request
+                            console.error(error);
+                        }
+                    });
+                    
+                });
+            });
+              
+              
+        </script>
+    </body>
+</html>
