@@ -16,8 +16,11 @@
         </form>
 
         <button onclick="optimize()">Otimizar</button>
-        <button onclick="table()">Table</button>
 
+        <label for="cars">Choose a car:</label>
+
+        <select name="docent_names" id="docent_names">
+        </select> 
         <table id="tabela">
         </table>
 
@@ -38,40 +41,48 @@
         </style>
 
         <script>
-            function table(){
-                $.ajax({
-                    url: "docentes-info",
-                    dataType: "json",
-                    success: function(data) {
-                        console.log(data); // do something with the returned data
-                        name="Adriana Xavier Freitas"
-                        var tabela = document.getElementById("tabela");
-                        var i = 0;
+            var data_table = null;
+            function select_docente(aa){
+                console.log(aa.target.value)
+                clear_table()
+                show_docent_diciplins(aa.target.value, data_table);
 
-                        while(i < data.length && data[i]["nome"] != name){
-                            i++;
-                        }
+            }
 
-                        if(i < data.length){
-                            var disci_dados = data[i]["disciplinas_dados"]
-                            for(var j = 0; j < disci_dados.length; j++){
-                                var horarios = disci_dados[j]["horarios"]
-                                for(var k = 0; k < horarios.length; k++){
-                                    pos_hora = parseInt(horarios[k]["hora_inicio"].split(':')) - 6;
-                                    pos_dia = horarios[k]["dia_semana"];
-                                    innerHTML = "<p>" + data[i]["disciplinas"][j] + "</p>";
+            function show_docent_diciplins(docent_name, docents){
+                var tabela = document.getElementById("tabela");
+                var i = 0;
 
-                                    tabela.getElementsByTagName("tr")[pos_hora].getElementsByTagName("td")[pos_dia].innerHTML = innerHTML
-                                }
+                while(i < docents.length && docents[i]["nome"] != docent_name){
+                    i++;
+                }
+
+                if(i < docents.length){
+                    var disci_dados = docents[i]["disciplinas_dados"]
+                    for(var j = 0; j < disci_dados.length; j++){
+                        var horarios = disci_dados[j]["horarios"]
+                        for(var k = 0; k < horarios.length; k++){
+                            pos_hora_inicio = parseInt(horarios[k]["hora_inicio"].split(':')) - 6;
+                            pos_hora_fim = parseInt(horarios[k]["hora_fim"].split(':')) - 6;
+                            pos_dia = horarios[k]["dia_semana"];
+                            innerHTML = "<p>" + docents[i]["disciplinas"][j] + "</p>";
+                            for(var a = pos_hora_inicio; a <= pos_hora_fim; a++){
+                                tabela.getElementsByTagName("tr")[a].getElementsByTagName("td")[pos_dia].innerHTML = innerHTML
                             }
-
-                            console.log(tabela)
                         }
-
-                    },
-                    error: function(xhr, status, error) {
-                        console.log("Error: " + error); // handle the error
                     }
+
+                }
+            }
+
+            function put_names_in_select(docent){
+                var select = document.getElementById("docent_names")
+                docent.forEach(element => {
+                    var opt = document.createElement('option');
+                    opt.value = element["nome"];
+                    opt.innerHTML = element["nome"];
+                    opt.addEventListener("click", select_docente);
+                    select.appendChild(opt);
                 });
             }
 
@@ -84,6 +95,7 @@
                     success: function(response) {
                         // Handle the response from the server
                         console.log(response);
+                        get_data_table();
                     },
                     error: function(xhr, status, error) {
                         // Handle any errors that occur during the request
@@ -91,19 +103,31 @@
                     }
                 });
             }
-             
-            $(document).ready(function() {
+            
+            function clear_table(){
+                var tabela = document.getElementById("tabela");
+
+                for(var i=1; i<17; i++){
+                    var row = tabela.getElementsByTagName("tr")[i];
+
+                    for(var j=1; j<7; j++){
+                        row.getElementsByTagName("td")[j].innerHTML = "";
+                    }
+                }
+            }
+
+            function create_table(){
                 var tabela = document.getElementById("tabela");
 
                 semana = ["", "segunda", "terça", "quarta", "quinta", "sexta", "sabado"]
                 var head = tabela.createTHead();
                 var row = head.insertRow(0);
+                
                 for(var j=0; j<7; j++){
                     row.insertCell(j).innerHTML = semana[j];
                 }
 
-
-                for(var i=1; i<16; i++){
+                for(var i=1; i<17; i++){
                     row = tabela.insertRow(i);
                     row.insertCell(0).innerHTML=i+6;
 
@@ -112,9 +136,31 @@
                     }
                 }
 
+                get_data_table();
+            }
+            
+            function get_data_table(){
+                $.ajax({
+                    url: "docentes-info",
+                    dataType: "json",
+                    success: function(data) {
+                        data_table = data;
+                        put_names_in_select(data_table);
+
+                    },
+                    error: function(xhr, status, error) {
+                        window.alert(xhr.responseText)
+                    }
+                });
+            }
+
+            $(document).ready(function() {
+
+                create_table();
+
                 $('#envioArquivos').submit(function(e) {
-                    e.preventDefault(); // prevent the form from submitting normally
-                    var data = new FormData($(this)[0]); // serialize the form data
+                    e.preventDefault(); 
+                    var data = new FormData($(this)[0]); 
                     console.log(data)
 
                     $.ajax({
@@ -126,16 +172,15 @@
 
                         dataType: 'json',
                         success: function(response) {
-                            // Handle the response from the server
                             console.log(response);
                         },
                         error: function(xhr, status, error) {
-                            // Handle any errors that occur during the request
                             console.error(error);
                         }
                     });
                     
                 });
+
             });
               
               

@@ -41,11 +41,9 @@ def optimize():
     with open('saves/diciplinas.json', "r") as file:
         diciplinas = json.load(file)
 
-
     mydg.calcula(diciplinas, docentes)
 
     return 'Optimization'
-
 
 @app.route('/show-results')
 def show_results():
@@ -54,11 +52,14 @@ def show_results():
 
 @app.route('/docentes-info')
 def docentes_info():
-    with open('saves/docente_saida2023-1.json', 'r') as file:
-        docentes = json.load(file)
-    with open('saves/diciplinas.json', 'r') as file:
-        diciplinas = json.load(file)
-    
+    try:
+        with open('saves/docente_saida2023-1.json', 'r') as file:
+            docentes = json.load(file)
+        with open('saves/diciplinas.json', 'r') as file:
+            diciplinas = json.load(file)
+    except:
+        return "Arquivo diciplina e/ou o resultado da otimização não estão presentes"
+
     dic_obj = myam.dict_to_obj(diciplinas)
     dict_cod_turma = myam.dict_cod_turma(dic_obj)
 
@@ -66,9 +67,6 @@ def docentes_info():
         doc["disciplinas_dados"] = []
         for dis in doc["disciplinas"]:
             doc["disciplinas_dados"].append(dict_cod_turma[dis])
-
-
-    print(docentes)
 
     return docentes
  
