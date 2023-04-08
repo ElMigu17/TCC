@@ -16,8 +16,7 @@ class distribuicao_graduacao:
         self.peso_desempate = 1
 
         self.restricao_horario_turnos = False
-        self.restricao_horario_23_18 = False
-        
+        self.restricao_horario_23_18 = False   
 
     def leitura_arquivo(self, name):
         am = array_manipulator()
@@ -44,6 +43,8 @@ class distribuicao_graduacao:
             for dis in self.disciplinas:
                 self.atribuicao[(doc.pos, dis.pos)] = self.modelo.NewBoolVar('atribuicao_doc%idis%i' % (doc.pos, dis.pos)) 
     
+## Restrições
+
     def res_um_doc_por_dis(self):
         for dis in self.disciplinas:
             self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)] for doc in self.docentes)
@@ -221,8 +222,7 @@ class distribuicao_graduacao:
         print('Desvio padrão de créditos: ', math.sqrt(variancia))
 
         am = array_manipulator()
-        am.save_as_json(self.docentes, True)
-        
+        am.save_as_json(self.docentes, True)   
 
     def verifica_solucao(self):
         solver = cp_model.CpSolver()
@@ -246,8 +246,7 @@ class distribuicao_graduacao:
         print('  - conflicts: %i' % solver.NumConflicts())
         print('  - branches : %i' % solver.NumBranches())
         print('  - wall time: %f s' % solver.WallTime())
-        
-        
+                
     def calcula(self, disciplinas, docentes):
         am = array_manipulator()
         
@@ -270,12 +269,11 @@ class distribuicao_graduacao:
 
         self.verifica_solucao()
 
-
-
 def main():
     dg = distribuicao_graduacao()
     disciplinas = dg.leitura_arquivo("disciplina2022-2")
-    dg.calcula(disciplinas)
+    docente = dg.leitura_arquivo("docente2022-2")
+    dg.calcula(disciplinas, docente)
 
 if __name__ == '__main__':
     main()
