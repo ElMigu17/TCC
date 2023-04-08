@@ -248,12 +248,11 @@ class distribuicao_graduacao:
         print('  - wall time: %f s' % solver.WallTime())
         
         
-    def calcula(self, disciplinas):
+    def calcula(self, disciplinas, docentes):
         am = array_manipulator()
         
         self.disciplinas = am.dict_to_obj(disciplinas)
-        docentes = self.leitura_arquivo("docente2022-2")
-        self.docentes = docentes 
+        self.docentes = am.dict_to_obj(docentes) 
 
         self.modelo = cp_model.CpModel()
         self.matriz_de_correlacao()      
