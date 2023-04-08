@@ -35,7 +35,6 @@ def upload():
 
 @app.route('/optimize', methods=['POST'])
 def optimize():
-    print("aaaaaaaaaaaaaaaaa")
     with open('saves/docentes.json', 'r') as file:
         docentes = json.load(file)
 
@@ -43,11 +42,9 @@ def optimize():
         diciplinas = json.load(file)
 
 
-    print(type(diciplinas))
-    mydg.calcula(diciplinas)
+    mydg.calcula(diciplinas, docentes)
 
-    # Do something with the data...
-    return 'File uploaded successfully!'
+    return 'Optimization'
 
 
 @app.route('/show-results')
@@ -55,11 +52,25 @@ def show_results():
     return render_template('show_results.html')    
 
 
-@app.route('/disciplinas-info')
-def disciplinas_info():
-    dictionary = mydg.leitura_arquivo("disciplina2022-2")
-    a = myam.dict_cod_turma(dictionary)
-    return a
+@app.route('/docentes-info')
+def docentes_info():
+    with open('saves/docente_saida2023-1.json', 'r') as file:
+        docentes = json.load(file)
+    with open('saves/diciplinas.json', 'r') as file:
+        diciplinas = json.load(file)
+    
+    dic_obj = myam.dict_to_obj(diciplinas)
+    dict_cod_turma = myam.dict_cod_turma(dic_obj)
+
+    for doc in docentes:
+        doc["disciplinas_dados"] = []
+        for dis in doc["disciplinas"]:
+            doc["disciplinas_dados"].append(dict_cod_turma[dis])
+
+
+    print(docentes)
+
+    return docentes
  
 @app.route('/get-json/<caminho>')
 def get_json(caminho):

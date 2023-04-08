@@ -16,8 +16,65 @@
         </form>
 
         <button onclick="optimize()">Otimizar</button>
+        <button onclick="table()">Table</button>
+
+        <table id="tabela">
+        </table>
+
+        <style>
+            table, th, td {   
+                border-collapse: collapse;
+                border: 1px solid black;
+            }
+
+            td {
+                height: 20px;
+                width: 40px;
+            }
+
+            td > p {
+                margin: 0;
+            }
+        </style>
 
         <script>
+            function table(){
+                $.ajax({
+                    url: "docentes-info",
+                    dataType: "json",
+                    success: function(data) {
+                        console.log(data); // do something with the returned data
+                        name="Adriana Xavier Freitas"
+                        var tabela = document.getElementById("tabela");
+                        var i = 0;
+
+                        while(i < data.length && data[i]["nome"] != name){
+                            i++;
+                        }
+
+                        if(i < data.length){
+                            var disci_dados = data[i]["disciplinas_dados"]
+                            for(var j = 0; j < disci_dados.length; j++){
+                                var horarios = disci_dados[j]["horarios"]
+                                for(var k = 0; k < horarios.length; k++){
+                                    pos_hora = parseInt(horarios[k]["hora_inicio"].split(':')) - 6;
+                                    pos_dia = horarios[k]["dia_semana"];
+                                    innerHTML = "<p>" + data[i]["disciplinas"][j] + "</p>";
+
+                                    tabela.getElementsByTagName("tr")[pos_hora].getElementsByTagName("td")[pos_dia].innerHTML = innerHTML
+                                }
+                            }
+
+                            console.log(tabela)
+                        }
+
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error); // handle the error
+                    }
+                });
+            }
+
             function optimize(){
                 $.ajax({
                     type: "POST",
@@ -36,6 +93,25 @@
             }
              
             $(document).ready(function() {
+                var tabela = document.getElementById("tabela");
+
+                semana = ["", "segunda", "terça", "quarta", "quinta", "sexta", "sabado"]
+                var head = tabela.createTHead();
+                var row = head.insertRow(0);
+                for(var j=0; j<7; j++){
+                    row.insertCell(j).innerHTML = semana[j];
+                }
+
+
+                for(var i=1; i<16; i++){
+                    row = tabela.insertRow(i);
+                    row.insertCell(0).innerHTML=i+6;
+
+                    for(var j=1; j<7; j++){
+                        row.insertCell(j);
+                    }
+                }
+
                 $('#envioArquivos').submit(function(e) {
                     e.preventDefault(); // prevent the form from submitting normally
                     var data = new FormData($(this)[0]); // serialize the form data
