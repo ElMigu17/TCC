@@ -15,9 +15,15 @@
             <input type="submit" value="Submit">
         </form>
 
+        <div id="presenca-de-arquivo">
+            <div class="ausente">Arquivo de disciplina ausente</div>
+            <div class="ausente">Arquivo de docentes ausente</div>
+            <div class="ausente">Arquivo de resultado da otimização ausente</div>
+        </div>
+
         <button onclick="optimize()">Otimizar</button>
 
-        <label for="cars">Choose a car:</label>
+        <label for="docent_names">Choose a teacher:</label>
 
         <select name="docent_names" id="docent_names">
         </select> 
@@ -38,12 +44,18 @@
             td > p {
                 margin: 0;
             }
+
+            .ausente{
+                background-color: red;
+            }
+            .presente{
+                background-color: green;
+            }
         </style>
 
         <script>
             var data_table = null;
             function select_docente(aa){
-                console.log(aa.target.value)
                 clear_table()
                 show_docent_diciplins(aa.target.value, data_table);
 
@@ -96,6 +108,7 @@
                         // Handle the response from the server
                         console.log(response);
                         get_data_table();
+                        check_files_existence();
                     },
                     error: function(xhr, status, error) {
                         // Handle any errors that occur during the request
@@ -154,14 +167,51 @@
                 });
             }
 
+            function check_files_existence(){
+                $.ajax({
+                    type: "GET",
+                    url: "files-existence",
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        console.log(response);
+
+                        var a = document.getElementById("presenca-de-arquivo").getElementsByTagName("div")
+                        update_file_situation(response["diciplinas"], a[0]);
+                        update_file_situation(response["docentes"], a[1]);
+                        update_file_situation(response["resultado"], a[2]);
+
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            }
+
+            function update_file_situation(exist, element){
+                if(exist){
+                    console.log("aaaaaaaaaaa")
+                    element.classList.remove("ausente")
+                    element.classList.add("presente")
+                    element.innerHTML = element.innerHTML.replace("ausente", "presente")
+                }
+                else{
+                    console.log("bbbb")
+                    element.classList.remove("presente")
+                    element.classList.add("ausente")
+                    element.innerHTML = element.innerHTML.replace("presente", "ausente")
+                }
+            }
+
             $(document).ready(function() {
 
                 create_table();
+                check_files_existence();
+                
 
                 $('#envioArquivos').submit(function(e) {
                     e.preventDefault(); 
                     var data = new FormData($(this)[0]); 
-                    console.log(data)
 
                     $.ajax({
                         type: "POST",
@@ -170,9 +220,9 @@
                         processData: false,
                         contentType: false,
 
-                        dataType: 'json',
                         success: function(response) {
                             console.log(response);
+                            check_files_existence();
                         },
                         error: function(xhr, status, error) {
                             console.error(error);

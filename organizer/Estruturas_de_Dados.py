@@ -149,6 +149,7 @@ class array_manipulator:
         return array_of_objects
     
     def dict_cod_turma(self, disciplinas: list):
+        
         dictionary = {}
 
         for disc in disciplinas:
