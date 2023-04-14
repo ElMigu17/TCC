@@ -212,14 +212,15 @@ class distribuicao_graduacao:
             print("Quantidade total de creditos:", array_creditos[-1])
 
             print()
+        media_creditos = sum(array_creditos)/len(self.docentes)
+        variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
+        desvio_padrao = math.sqrt(variancia)
         print('Preferencias atendidas =', qtd_preferencias)
         print('Total de pesos de preferencia atendidos =', qtd_preferencias_peso)
         print('Quantidade de primeiros lugar no ranking ganhadores =', qtd_primeir_ranking_ganhador)
-        media_creditos = sum(array_creditos)/len(self.docentes)
         print('Media de créditos: ', media_creditos)
-        variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
         print('Variancia de créditos: ', variancia)
-        print('Desvio padrão de créditos: ', math.sqrt(variancia))
+        print('Desvio padrão de créditos: ', desvio_padrao)
 
         am = array_manipulator()
         am.save_as_json(self.docentes, True)   
