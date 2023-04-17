@@ -31,8 +31,13 @@
         <table id="horario">
         </table>
 
-        <table id="preferencias">
-        </table>
+        <div id="preferencias">
+        </div>
+
+        <h3>Lista de disciplinas que serão liberadas</h3>
+        <ul id="disciplinas_liberadas">
+            
+        </ul>
 
         <style>
             table, th, td {   
@@ -54,6 +59,12 @@
             }
             .presente{
                 background-color: green;
+            }
+
+            .cell-preference {
+                font-size: 9px;
+                width: 139px;
+                text-align: center;          
             }
         </style>
 
@@ -142,28 +153,70 @@
                 return disc["codigo"] + "_" + turmas_as_string  
             }
 
-            function preenche_tabela_preferencias(data){
-                var tabela = document.getElementById("preferencias");
+            function format_name(name){
+                var arr_name = name.split(" ");
+                arr_name[0] = arr_name[0] + " ";
+
+                for (var i=1; i<arr_name.length; i++){
+                    arr_name[0] = arr_name[0] + arr_name[i][0] + "."
+                }
+
+                return arr_name[0]
+            }
+
+            function materias_que_serao_liberadas(data){
+                console.log("aaaaa", data)
+                var disciplinas_liberadas = []
+
+                for (i in data) {
+                    var disciplinas_seguidas = data[i]["disc_per_2"]
+                    for (j in disciplinas_seguidas){
+                        if(!(disciplinas_seguidas[j] in data[i]["disc_per_1"])){
+                            disciplinas_seguidas.pop(j)
+                        }
+                    }
+
+                    for (j in disciplinas_seguidas){
+                        if(!(disciplinas_seguidas[j] in data[i]["disciplinas"])){
+                            disciplinas_seguidas.pop(j)
+                        }
+                    }
+                    console.log(disciplinas_seguidas)
+
+                    disciplinas_liberadas = disciplinas_liberadas.concat(disciplinas_seguidas)
+                }
+                console.log(disciplinas_liberadas)
+                var lista = document.getElementById("disciplinas_liberadas")
+                for(i in disciplinas_liberadas){
+                    var novo_item = document.createElement('li') 
+                    novo_item.innerHTML = disciplinas_liberadas[i]
+                    lista.appendChild(novo_item)
+                }
+            }
+
+            function preenche_tabela_preferencias(data, tabela){
+                tabela.innerHTML = "";
 
                 var head = tabela.createTHead();
                 var row = head.insertRow(0);
 
                 row.insertCell(j).innerHTML = "Peso";
                 for(var i=0; i<data.length; i++){
-                    row.insertCell(j).innerHTML = data[i]["nome"];
+                    row.insertCell(j).innerHTML = format_name(data[i]["nome"]);
                 }
 
+                var body = tabela.createTBody();
                 for(var i=0; i<5; i++){
-                    row = tabela.insertRow(i+1);
+                    row = body.insertRow(i);
                     row.insertCell(0).innerHTML = i+1;
 
                     for(var j=1; j<=data.length; j++){
                         disciplina_turma = pega_disciplina_por_peso(data[j-1]["preferencia"], i+1)
                         var cell = row.insertCell(j)
                         cell.innerHTML = disciplina_turma;
+                        cell.classList.add("cell-preference")
                         cell.style.backgroundColor = "red";
                         for(k in data[j-1]["disciplinas_dados"]){
-                            console.log(string_cod_turma(data[j-1]["disciplinas_dados"][k]), disciplina_turma)
                             if(string_cod_turma(data[j-1]["disciplinas_dados"][k]) == disciplina_turma){
                                 cell.style.backgroundColor = "green";
                             }
@@ -197,6 +250,29 @@
                 get_data_table();
             }
 
+            function upload_files(){
+                $('#envioArquivos').submit(function(e) {
+                    e.preventDefault(); 
+                    var data = new FormData($(this)[0]); 
+
+                    $.ajax({
+                        type: "POST",
+                        url: "upload",
+                        data: data,
+                        processData: false,
+                        contentType: false,
+
+                        success: function(response) {
+                            check_files_existence();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(error);
+                        }
+                    });
+                    
+                });
+            }
+
             function optimize(){
                 $.ajax({
                     type: "POST",
@@ -206,6 +282,7 @@
                     success: function(response) {
                         get_data_table();
                         check_files_existence();
+                        setTimeout(() => materias_que_serao_liberadas(data_table), 500);
                     },
                     error: function(xhr, status, error) {
                         console.error(error);
@@ -220,7 +297,19 @@
                     success: function(data) {
                         data_table = data;
                         put_names_in_select(data_table);
-                        preenche_tabela_preferencias(data_table);
+
+                        var datas = []
+                        datas.push(data_table.slice(0,8))
+                        datas.push(data_table.slice(8,16))
+                        datas.push(data_table.slice(16))
+                        
+                        for (var i in datas) {
+                            var tabela = document.createElement('table');
+                            document.getElementById("preferencias").appendChild(tabela);
+                            preenche_tabela_preferencias(datas[i], tabela);
+                        }
+
+
 
                     },
                     error: function(xhr, status, error) {
@@ -254,31 +343,12 @@
             }
 
             $(document).ready(function() {
-
                 create_table();
                 check_files_existence();
+
                 document.getElementById("docent_names").addEventListener("change", select_docente)
-
-                $('#envioArquivos').submit(function(e) {
-                    e.preventDefault(); 
-                    var data = new FormData($(this)[0]); 
-
-                    $.ajax({
-                        type: "POST",
-                        url: "upload",
-                        data: data,
-                        processData: false,
-                        contentType: false,
-
-                        success: function(response) {
-                            check_files_existence();
-                        },
-                        error: function(xhr, status, error) {
-                            console.error(error);
-                        }
-                    });
-                    
-                });
+                upload_files();
+                setTimeout(() => materias_que_serao_liberadas(data_table), 800);
 
             });
               
