@@ -1,0 +1,104 @@
+
+#toggle-file-type{
+    display: flex;
+    flex-direction: row;
+    p {
+        padding: 0;
+        margin: 0;
+    }
+
+    label {
+        margin: 0 10px;
+    }
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 17px;
+    > input:checked + .slider:before {
+        -webkit-transform: translateX(13px);
+        -ms-transform: translateX(13px);
+        transform: translateX(13px);
+    }
+
+    input { 
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+}
+
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #0d0d0d;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 13px;
+    width: 13px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 17px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+#envioArquivos {
+    div {
+        flex-direction: column;
+    }
+    #csv {
+        display: none;
+    }
+}
+
+
+
+table, th, td {   
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+
+td {
+    height: 20px;
+    width: 40px;
+}
+
+td > p {
+    margin: 0;
+}
+
+.ausente{
+    background-color: red;
+}
+.presente{
+    background-color: green;
+}
+
+.cell-preference {
+    font-size: 9px;
+    width: 139px;
+    text-align: center;          
+}

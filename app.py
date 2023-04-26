@@ -2,14 +2,17 @@ from flask import Flask, request, render_template
 import json
 from organizer.Modelo import distribuicao_graduacao
 from organizer.Estruturas_de_Dados import array_manipulator
+import sass
 import os
 
 app = Flask(__name__)
 dist_grad = distribuicao_graduacao()
 arr_man = array_manipulator()
 
+
 @app.route('/', methods=['GET'])
 def index():
+    converte_scss()
     return render_template('upload.html')
 
 @app.route('/upload', methods=['POST'])
@@ -76,5 +79,13 @@ def files_existence():
 
     return existencia
 
+def converte_scss():
+    sass.compile(dirname=('static/sass', 'static/css'), output_style='compressed')
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+#https://sass.github.io/libsass-python/index.html
