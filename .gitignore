@@ -2,3 +2,4 @@
 *.xlsx
 .~lock.*
 __pycache__
+*.csv
