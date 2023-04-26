@@ -66,7 +66,6 @@ def importa_dados_profs():
     doscentes_dados = pd.read_excel('Modelos/Doscentes.xlsx')
     index = 0
 
-
     for i in doscentes_dados.index:
         reducao = 0
         if not pd.isna(doscentes_dados.iloc[i]['Redução']):
@@ -98,7 +97,7 @@ def importa_dados_passados():
 
 def importa_preferencias():
     Preferencias = pd.read_excel('Modelos/Preferencias.xlsx', index_col=0, header=0)
-    qtd_profs = int(Preferencias.size/Preferencias.index.size)
+
     for i in Preferencias.columns:
         for j in Preferencias.index:
             if not pd.isna(Preferencias[i][j]):
