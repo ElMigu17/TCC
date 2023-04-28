@@ -1,17 +1,31 @@
 var data_table = null;
 var type_json = true;
+var file_type = "json";
+
+
+setDisplayInClass("csv", "none");
+setDisplayInClass("json", "flex");
+document.getElementById("toggle").checked = false;
+
+function setDisplayInClass(my_class, my_display){
+    csvElements = document.getElementsByClassName(my_class);
+    for(let i=0; i<csvElements.length; i++){
+        csvElements[i].style.display = my_display;
+    }
+}
 
 function toggleFileType(){
-    if(type_json){
-        type_json = false
-        document.getElementById("csv").style.display = "flex";
-        document.getElementById("json").style.display = "none";
+    if(file_type === "json"){
+        file_type = "csv";
+        setDisplayInClass("csv", "flex");
+        setDisplayInClass("json", "none");
     }
     else{
-        type_json = true
-        document.getElementById("csv").style.display = "none";
-        document.getElementById("json").style.display = "flex";
+        file_type = "json";
+        setDisplayInClass("csv", "none");
+        setDisplayInClass("json", "flex");
     }
+    check_files_existence();
 }
 
 function show_docent_diciplins(docent_name, docents){
@@ -108,7 +122,6 @@ function format_name(name){
 }
 
 function materias_que_serao_liberadas(data){
-    console.log("aaaaa", data)
     var disciplinas_liberadas = []
 
     for (i in data) {
@@ -124,11 +137,9 @@ function materias_que_serao_liberadas(data){
                 disciplinas_seguidas.pop(j)
             }
         }
-        console.log(disciplinas_seguidas)
 
         disciplinas_liberadas = disciplinas_liberadas.concat(disciplinas_seguidas)
     }
-    console.log(disciplinas_liberadas)
     var lista = document.getElementById("disciplinas_liberadas")
     for(i in disciplinas_liberadas){
         var novo_item = document.createElement('li') 
@@ -200,8 +211,8 @@ function upload_files(){
 
         $.ajax({
             type: "POST",
-            url: "upload",
-            data: data,
+            url: "upload/" + file_type,
+            data:  data,
             processData: false,
             contentType: false,
 
@@ -212,14 +223,13 @@ function upload_files(){
                 console.error(error);
             }
         });
-        
     });
 }
 
 function optimize(){
     $.ajax({
         type: "POST",
-        url: "optimize",
+        url: "optimize/" + file_type,
         processData: false,
         contentType: false,
         success: function(response) {
@@ -264,14 +274,24 @@ function get_data_table(){
 function check_files_existence(){
     $.ajax({
         type: "GET",
-        url: "files-existence",
+        url: "files-existence/" + file_type,
         processData: false,
-        contentType: false,
         success: function(response) {
-            var a = document.getElementById("presenca-de-arquivo").getElementsByTagName("div")
-            update_file_situation(response["diciplinas"], a[0]);
-            update_file_situation(response["docentes"], a[1]);
-            update_file_situation(response["resultado"], a[2]);
+            var files = document.getElementById("presenca-de-arquivo").getElementsByTagName("div")
+            if(file_type === 'json'){
+                var files = document.getElementById("presenca-de-arquivo").getElementsByClassName("json")[0].children;
+                update_file_situation(response["disciplinas"], files[0]);
+                update_file_situation(response["docentes"], files[1]);
+                update_file_situation(response["resultado"], files[2]);
+            }
+            else{
+                var files = document.getElementById("presenca-de-arquivo").getElementsByClassName("csv")[0].children;
+                update_file_situation(response["docentes_csv"], files[0]);
+                update_file_situation(response["ultimo_semestre"], files[1]);
+                update_file_situation(response["disciplinas_prox"], files[2]);
+                update_file_situation(response["preferencias"], files[3]);
+                update_file_situation(response["resultado"], files[4]);
+            }
 
         },
         error: function(xhr, status, error) {

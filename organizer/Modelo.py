@@ -228,10 +228,8 @@ class distribuicao_graduacao:
     def verifica_solucao(self):
         solver = cp_model.CpSolver()
         #solver.parameters.log_search_progress = True
-        print("2222222222")
 
         status = solver.Solve(self.modelo)
-        print("11111111111")
 
         if status == cp_model.OPTIMAL:
             print('Optimal solution:')
@@ -264,17 +262,14 @@ class distribuicao_graduacao:
         self.res_um_doc_por_dis()
         self.res_horario()
         self.res_prioridade()
-        print("aaaaaaaaaaaaaa")
         
         soma_opt = self.opt_interesse()
         soma_opt += (self.opt_horarios() * self.peso_infracao_horario)
         soma_opt += (self.opt_desempate() * self.peso_desempate)
 
         self.modelo.Maximize(soma_opt)
-        print("bbbbbbbbbbb")
 
         self.verifica_solucao()
-        print("cccccccccccccc")
 
 def main():
     dg = distribuicao_graduacao()

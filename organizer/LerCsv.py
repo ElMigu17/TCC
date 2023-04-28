@@ -1,155 +1,156 @@
-from Estruturas_de_Dados import disciplina, docente, array_manipulator
-import csv
+from organizer.Estruturas_de_Dados import disciplina, docente, array_manipulator
 
-dia_num = {"Segunda-Feira" : 1,
-    "Terça-Feira" : 2,
-    "Quarta-Feira" : 3,
-    "Quinta-Feira" : 4,
-    "Sexta-Feira" : 5,
-    "Sábado" : 6}
+class leitor_csv:
+    def __init__(self) -> None:
+        self.dia_num = {"Segunda-Feira" : 1,
+            "Terça-Feira" : 2,
+            "Quarta-Feira" : 3,
+            "Quinta-Feira" : 4,
+            "Sexta-Feira" : 5,
+            "Sábado" : 6}
 
-docentes = []
-siape_docente = {}
-disciplinas = []
+        self.docentes = []
+        self.siape_docente = {}
+        self.disciplinas = []
+    
+    def num_ou_zero(self, num):
+        try:
+            return int(num)
+        except:
+            return 0
 
-def importa_dados_disciplinas():
-    Dados_Gerais = ""
-    with open('Modelos/Dados_Gerais.csv', 'r') as file:
-        Dados_Gerais = file.read()
-    Dados_Gerais = Dados_Gerais.split("\n")
-    Dados_Gerais = list(map(lambda d: d.split(","),Dados_Gerais))
-    if not Dados_Gerais[0][0].isdigit():
-        Dados_Gerais.pop(0)
+    def importa_dados_disciplinas(self, caminho_arquivo):
+        Dados_Gerais = ""
+        with open(caminho_arquivo, 'r') as file:
+            Dados_Gerais = file.read()
+        Dados_Gerais = Dados_Gerais.split("\n")
+        Dados_Gerais = list(map(lambda d: d.split(","),Dados_Gerais))
+        if not Dados_Gerais[0][0].isdigit():
+            Dados_Gerais.pop(0)
 
-    prox_disciplina = {}
-    id_i = 0
-    index = 0
-
-    def descobre_qtd_creditos(horarios):
-        if(horarios[1].split(":")[1] == '50'):
-            return 1
-        else:
-            return 2
-        
-    def cria_prox_disciplina(dado):
         prox_disciplina = {}
-        horarios = dado[6].split(' - ')
-        prox_disciplina['horarios'] = [{ "dia_semana": dia_num[dado[5]], "hora_inicio": horarios[0], "hora_fim": horarios[1]}]
-        prox_disciplina['disciplina'] = dado[0]
-        prox_disciplina['turmas'] = [dado[7]]
-        prox_disciplina['qtd_creditos'] = descobre_qtd_creditos(horarios)
+        id_i = 0
+        index = 0
 
-        return prox_disciplina
-    while len(Dados_Gerais[index]) > 2 and len(Dados_Gerais) > index:
-        dado = Dados_Gerais[index]
-        if dado[0] == '':
-            if not dado[7] in prox_disciplina['turmas']:
-                prox_disciplina['turmas'].append(dado[7])
-
-        else:
-            if not bool(prox_disciplina):
-                prox_disciplina = cria_prox_disciplina(dado)
-                continue
-
-            if ((dado[0] != prox_disciplina['disciplina']) 
-              or (not dado[7] in prox_disciplina['turmas'])):
-
-                disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
-                    prox_disciplina['qtd_creditos'],
-                    prox_disciplina['horarios'], 
-                    True, 
-                    prox_disciplina['turmas']))
-                id_i += 1
-
-                prox_disciplina = cria_prox_disciplina(dado)
+        def descobre_qtd_creditos(horarios):
+            if(horarios[1].split(":")[1] == '50'):
+                return 1
             else:
-                horarios = dado[6].split(' - ')
-                prox_disciplina['horarios'].append({ "dia_semana": dia_num[dado[5]], "hora_inicio": horarios[0], "hora_fim": horarios[1]})          
-                prox_disciplina['qtd_creditos'] += descobre_qtd_creditos(horarios)
-        index += 1
+                return 2
+            
+        def cria_prox_disciplina(dado):
+            prox_disciplina = {}
+            horarios = dado[6].split(' - ')
+            prox_disciplina['horarios'] = [{ "dia_semana": self.dia_num[dado[5]], "hora_inicio": horarios[0], "hora_fim": horarios[1]}]
+            prox_disciplina['disciplina'] = dado[0]
+            prox_disciplina['turmas'] = [dado[7]]
+            prox_disciplina['qtd_creditos'] = descobre_qtd_creditos(horarios)
 
-def importa_dados_profs():
-    doscentes_dados = ""
-    with open('Modelos/Doscentes.csv', 'r') as file:
-        doscentes_dados = file.read()
+            return prox_disciplina
+        while len(Dados_Gerais[index]) > 2 and len(Dados_Gerais) > index:
+            dado = Dados_Gerais[index]
+            if dado[0] == '':
+                if not dado[7] in prox_disciplina['turmas']:
+                    prox_disciplina['turmas'].append(dado[7])
 
-    index = 0
-    doscentes_dados = doscentes_dados.split("\n")
-    doscentes_dados = list(map(lambda d: d.split(","),doscentes_dados))
-    if not doscentes_dados[0][0].isdigit():
-        doscentes_dados.pop(0)
+            else:
+                if not bool(prox_disciplina):
+                    prox_disciplina = cria_prox_disciplina(dado)
+                    continue
+
+                if ((dado[0] != prox_disciplina['disciplina']) 
+                or (not dado[7] in prox_disciplina['turmas'])):
+
+                    self.disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
+                        prox_disciplina['qtd_creditos'],
+                        prox_disciplina['horarios'], 
+                        True, 
+                        prox_disciplina['turmas']))
+                    id_i += 1
+
+                    prox_disciplina = cria_prox_disciplina(dado)
+                else:
+                    horarios = dado[6].split(' - ')
+                    prox_disciplina['horarios'].append({ "dia_semana": self.dia_num[dado[5]], "hora_inicio": horarios[0], "hora_fim": horarios[1]})          
+                    prox_disciplina['qtd_creditos'] += descobre_qtd_creditos(horarios)
+            index += 1
+
+    def importa_dados_profs(self, caminho_arquivo):
+        doscentes_dados = ""
+        with open(caminho_arquivo, 'r') as file:
+            doscentes_dados = file.read()
+
+        index = 0
+        doscentes_dados = doscentes_dados.split("\n")
+        doscentes_dados = list(map(lambda d: d.split(","),doscentes_dados))
+        if not doscentes_dados[0][0].isdigit():
+            doscentes_dados.pop(0)
+            
+        while doscentes_dados[index][0].isdigit() and len(doscentes_dados) > index:
+            dosc_dados = doscentes_dados[index]
+            reducao = 0
+
+            if not dosc_dados[2].isdigit():
+                reducao = int(dosc_dados[2].isdigit())
+            self.docentes.append(docente(index, dosc_dados[1], int(dosc_dados[0]), reducao))
+            self.siape_docente[dosc_dados[0]] = index
+            index += 1 
+
+    def importa_dados_passados(self, caminho_arquivo):
+        ultimo_semestre = ""
+
+        with open(caminho_arquivo, 'r') as file:
+            ultimo_semestre = file.read()
         
-    while doscentes_dados[index][0].isdigit() and len(doscentes_dados) > index:
-        dosc_dados = doscentes_dados[index]
-        reducao = 0
+        index = 0
+        ultimo_semestre = ultimo_semestre.split("\n")
+        ultimo_semestre = list(map(lambda d: d.split(","),ultimo_semestre))
+        if not ultimo_semestre[0][0].isdigit():
+            ultimo_semestre.pop(0)
+            
+        while ultimo_semestre[index][0].isdigit() and len(ultimo_semestre) > index:
+            row = ultimo_semestre[index]
 
-        if not dosc_dados[2].isdigit():
-            reducao = int(dosc_dados[2].isdigit())
-        docentes.append(docente(index, dosc_dados[1], int(dosc_dados[0]), reducao))
-        siape_docente[dosc_dados[0]] = index
-        index += 1 
+            num_disc = self.num_ou_zero(row[3])
+            num_estudantes = self.num_ou_zero(row[4])
+            creditos = self.num_ou_zero(row[2])
+            siape = row[0]
+            
+            self.docentes[self.siape_docente[siape]].add_info_ultimo_periodo(num_disc, num_estudantes, creditos)
 
-def num_ou_zero(num):
-    try:
-        return int(num)
-    except:
-        return 0
-
-def importa_dados_passados():
-    ultimo_semestre = ""
-
-    with open('Modelos/2022-2.csv', 'r') as file:
-        ultimo_semestre = file.read()
-    
-    index = 0
-    ultimo_semestre = ultimo_semestre.split("\n")
-    ultimo_semestre = list(map(lambda d: d.split(","),ultimo_semestre))
-    if not ultimo_semestre[0][0].isdigit():
-        ultimo_semestre.pop(0)
+            index += 1
         
-    while ultimo_semestre[index][0].isdigit() and len(ultimo_semestre) > index:
-        row = ultimo_semestre[index]
+    def importa_preferencias(self, caminho_arquivo):
+        Preferencias = ""
 
-        num_disc = num_ou_zero(row[3])
-        num_estudantes = num_ou_zero(row[4])
-        creditos = num_ou_zero(row[2])
-        siape = row[0]
-        
-        docentes[siape_docente[siape]].add_info_ultimo_periodo(num_disc, num_estudantes, creditos)
-
-        index += 1
+        with open(caminho_arquivo, 'r') as file:
+            Preferencias = file.read()
+        Preferencias = Preferencias.split("\n")
+        Preferencias = list(map(lambda d: d.split(","),Preferencias))
+        siape_docentes_preferencia = Preferencias.pop(0)
+        siape_docentes_preferencia.pop(0)
     
+        i = 0
+        while len(Preferencias[i]) > 2 and len(Preferencias) > i:
+            j = 1
+            while len(Preferencias[i]) > j:
+                if Preferencias[i][j].isdigit():
+                    siape_atual = self.siape_docente[siape_docentes_preferencia[j-1]]
+                    self.docentes[siape_atual].add_preferencia(int(Preferencias[i][j]), j)
+                j += 1
+            i += 1
 
-def importa_preferencias():
-    Preferencias = ""
+    def main(self, dados_profs, dados_passado, dados_disciplinas, preferencias):
+        print(dados_profs, dados_passado, dados_disciplinas, preferencias)
+        self.importa_dados_profs(dados_profs)
+        self.importa_dados_passados(dados_passado)
+        self.importa_dados_disciplinas(dados_disciplinas)
+        self.importa_preferencias(preferencias)
+        am = array_manipulator()
+        am.save_as_json(self.disciplinas)
+        am.save_as_json(self.docentes)
 
-    with open('Modelos/Preferencias.csv', 'r') as file:
-        Preferencias = file.read()
-    Preferencias = Preferencias.split("\n")
-    Preferencias = list(map(lambda d: d.split(","),Preferencias))
-    siape_docentes_preferencia = Preferencias.pop(0)
-    siape_docentes_preferencia.pop(0)
-   
-    i = 0
-    while len(Preferencias[i]) > 2 and len(Preferencias) > i:
-        j = 1
-        while len(Preferencias[i]) > j:
-            if Preferencias[i][j].isdigit():
-                siape_atual = siape_docente[siape_docentes_preferencia[j-1]]
-                docentes[siape_atual].add_preferencia(int(Preferencias[i][j]), j)
-            j += 1
-        i += 1
-
-
-def main():
-    
-    importa_dados_profs()
-    importa_dados_passados()
-    importa_dados_disciplinas()
-    importa_preferencias()
-    am = array_manipulator()
-    am.save_as_json(disciplinas)
-    am.save_as_json(docentes)
 
 if __name__ == '__main__':
-    main()
+    leitor = leitor_csv()
+    leitor.main("Modelos/Doscentes.csv", "Modelos/2022-2.csv", "Modelos/Dados_Gerais.csv", "Modelos/Preferencias.csv")

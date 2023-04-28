@@ -10,45 +10,66 @@
         <div id="toggle-file-type">
             <p>.json</p>
             <label class="switch">
-                <input onclick="toggleFileType()" type="checkbox" checked>
+                <input onclick="toggleFileType()" type="checkbox" id="toggle" checked>
                 <span class="slider round"></span>
             </label>
             <p>.csv</p>
         </div>
         <form id="envioArquivos" >
-            <div id="json">
-                <label for="disciplinas">Arquivo json de disciplinas:</label><br>
+            <div class="json">
+                <h3>Enviar arquivo do tipo json com os dados:</h3>
+                <label for="disciplinas">Disciplinas:</label><br>
                 <input type="file" id="disciplinas" name="disciplinas"><br><br>
 
-                <label for="docentes">Arquivo json de docentes:</label><br>
+                <label for="docentes">Docentes:</label><br>
                 <input type="file" id="docentes" name="docentes"><br><br>
 
                 <input type="submit" value="Submit">
+                <button onclick="optimize()">Resolver</button>
+
+                <label for="export">Exportar csv da distribuição desse semestre:</label><br>
+                <input type="file" id="export" name="export"><br><br>
             </div>
 
-            <div id="csv">
-                <label for="disciplinas">Enviar arquivo csv com dados das disciplinas 
+            <div class="csv">
+                <h3>Enviar arquivo do tipo csv com os dados:</h3>
+                <label for="docentes_csv">Dos docentes 
                     no próximo semestre:</label><br>
-                <input type="file" id="disciplinas" name="disciplinas"><br><br>
+                <input type="file" id="docentes_csv" name="docentes_csv"><br><br>
 
-                <label for="docentes">Enviar arquivo csv com de dados  dos semestres 
-                    anteriores:</label><br>
-                <input type="file" id="docentes" name="docentes"><br><br>
+                <label for="ultimo_semestre">Do ultimo semestre:</label><br>
+                <input type="file" id="ultimo_semestre" name="ultimo_semestre"><br><br>
+
+                <label for="disciplinas_prox">Das disciplinas 
+                    no próximo semestre:</label><br>
+                <input type="file" id="disciplinas_prox" name="disciplinas_prox"><br><br>
+
+                <label for="preferencias">Das preferencias:</label><br>
+                <input type="file" id="preferencias" name="preferencias"><br><br>
 
                 <input type="submit" value="Submit">
+                <button onclick="optimize()">Resolver</button>
 
-                <label for="docentes">Exportar csv da distribuição desse semestre:</label><br>
-                <input type="file" id="docentes" name="docentes"><br><br>
+                <label for="export">Exportar csv da distribuição desse semestre:</label><br>
+                <input type="file" id="export" name="export"><br><br>
             </div>
         </form>
 
         <div id="presenca-de-arquivo">
-            <div class="ausente">Arquivo de disciplina ausente</div>
-            <div class="ausente">Arquivo de docentes ausente</div>
-            <div class="ausente">Arquivo de resultado da otimização ausente</div>
+            <div class="json">
+                <div class="ausente">Arquivo de disciplina ausente</div>
+                <div class="ausente">Arquivo de docentes ausente</div>
+                <div class="ausente">Arquivo de resultado da otimização ausente</div>
+            </div>
+            <div class="csv">
+                <div class="ausente">Arquivo de professores ausente</div>
+                <div class="ausente">Arquivo de ultimo semestre ausente</div>
+                <div class="ausente">Arquivo de disciplinas no próximo semestre ausente</div>
+                <div class="ausente">Arquivo de preferencias ausente</div>
+                <div class="ausente">Arquivo de resultado da otimização ausente</div>
+            </div>
         </div>
 
-        <button onclick="optimize()">Resolver</button>
 
         <label for="docent_names">Choose a teacher:</label>
         <select name="docent_names" id="docent_names"></select> 
