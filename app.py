@@ -34,19 +34,22 @@ def upload_file(request, file_name, file_type):
         file_out = request.files[file_name]
         data = file_out.read().decode('utf8')
 
+        if data == '':
+            return "empty_file"
+        
         if file_type == 'json':
             json_object = json.loads(data)
             with open('data/' + file_name + '.json', 'w') as file:
                 json.dump(json_object, file)
 
         else:
-            if data != '':
-                with open('data/' + file_name + '.csv', 'w') as file:
-                    file.write(data)
+            with open('data/' + file_name + '.csv', 'w') as file:
+                file.write(data)
 
 @app.route('/optimize/<file_type>', methods=['POST'])
 def optimize(file_type):
     if file_type == 'csv':
+        print("csv")
         leitor = leitor_csv()
         leitor.main("data/docentes_csv.csv", "data/ultimo_semestre.csv", "data/disciplinas_prox.csv", "data/preferencias.csv")
         
