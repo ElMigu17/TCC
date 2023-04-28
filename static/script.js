@@ -150,6 +150,7 @@ function materias_que_serao_liberadas(data){
 
 function preenche_tabela_preferencias(data, tabela){
     tabela.innerHTML = "";
+    console.log(data);
 
     var head = tabela.createTHead();
     var row = head.insertRow(0);
@@ -176,8 +177,8 @@ function preenche_tabela_preferencias(data, tabela){
                 }
             }
         }
-
     }
+    console.log(tabela)
 
 }
 
@@ -204,7 +205,7 @@ function create_table(){
     get_data_table();
 }
 
-function upload_files(){
+function config_upload_files(){
     $('#envioArquivos').submit(function(e) {
         e.preventDefault(); 
         var data = new FormData($(this)[0]); 
@@ -255,14 +256,14 @@ function get_data_table(){
             datas.push(data_table.slice(0,8))
             datas.push(data_table.slice(8,16))
             datas.push(data_table.slice(16))
+            document.getElementById("tabela_preferencias").innerHTML = "";
             
             for (var i in datas) {
                 var tabela = document.createElement('table');
-                document.getElementById("preferencias").appendChild(tabela);
+                document.getElementById("tabela_preferencias").appendChild(tabela);
                 preenche_tabela_preferencias(datas[i], tabela);
             }
-
-
+            console.log(document.getElementById("tabela_preferencias"))
 
         },
         error: function(xhr, status, error) {
@@ -310,7 +311,7 @@ $(document).ready(function() {
     check_files_existence();
 
     document.getElementById("docent_names").addEventListener("change", select_docente)
-    upload_files();
+    config_upload_files();
     setTimeout(() => materias_que_serao_liberadas(data_table), 2400);
 
 });
