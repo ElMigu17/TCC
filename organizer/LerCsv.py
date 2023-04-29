@@ -127,21 +127,18 @@ class leitor_csv:
             Preferencias = file.read()
         Preferencias = Preferencias.split("\n")
         Preferencias = list(map(lambda d: d.split(","),Preferencias))
-        siape_docentes_preferencia = Preferencias.pop(0)
-        siape_docentes_preferencia.pop(0)
-    
+        peso = Preferencias.pop(0)
+        peso.pop(0)
         i = 0
         while len(Preferencias[i]) > 2 and len(Preferencias) > i:
             j = 1
+            pos_docente_atual = self.siape_docente[Preferencias[i][0]]
             while len(Preferencias[i]) > j:
-                if Preferencias[i][j].isdigit():
-                    siape_atual = self.siape_docente[siape_docentes_preferencia[j-1]]
-                    self.docentes[siape_atual].add_preferencia(int(Preferencias[i][j]), j)
+                self.docentes[pos_docente_atual].add_preferencia(j, Preferencias[i][j])
                 j += 1
             i += 1
 
     def main(self, dados_profs, dados_passado, dados_disciplinas, preferencias):
-        print(dados_profs, dados_passado, dados_disciplinas, preferencias)
         self.importa_dados_profs(dados_profs)
         self.importa_dados_passados(dados_passado)
         self.importa_dados_disciplinas(dados_disciplinas)
@@ -153,4 +150,4 @@ class leitor_csv:
 
 if __name__ == '__main__':
     leitor = leitor_csv()
-    leitor.main("Modelos/Doscentes.csv", "Modelos/2022-2.csv", "Modelos/Dados_Gerais.csv", "Modelos/Preferencias.csv")
+    leitor.main("Modelos/Doscentes.csv", "Modelos/2022-2.csv", "Modelos/Dados_Gerais.csv", "Modelos/Preferencias2.0.csv")
