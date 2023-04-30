@@ -183,21 +183,31 @@ class distribuicao_graduacao:
 # Exibições
 
     def exibe_solucao_achada(self, solver):
-        qtd_preferencias = 0
+        qtds_pref = [0,0,0,0,0]
         qtd_preferencias_peso = 0
         qtd_primeir_ranking_ganhador = 0
         array_creditos = []
+        conflitos = self.todos_conflitos_horario()
+        print(conflitos)
 
         for doc in self.docentes:
             array_creditos.append(0)
+            dis_anterior = None
 
             for dis in self.disciplinas:
                 if solver.Value(self.atribuicao[(doc.pos, dis.pos)]) == 1:
                     add = ""
+
+                    if dis_anterior != None and [dis_anterior, dis.pos] in conflitos:
+                        doc.conflitos.append(self.disciplinas[dis_anterior].string_cod_turma())
+                        doc.conflitos.append(dis.string_cod_turma())
+
+                    dis_anterior = dis.pos
+
                     if dis.string_cod_turma() in doc.preferencia:
-                        
+                        qtds_pref[doc.preferencia[dis.string_cod_turma()]-1] += 1
+
                         add = "que possui preferencia " + str(doc.preferencia[dis.string_cod_turma()])
-                        qtd_preferencias += 1
                         qtd_preferencias_peso += doc.preferencia[dis.string_cod_turma()]
                     
                     if dis.pos in self.ranking:
@@ -205,27 +215,43 @@ class distribuicao_graduacao:
                             add += ", que era o primeiro no ranking"
                             qtd_primeir_ranking_ganhador += 1
 
-
                     print('Docente', doc.pos, 'lecionara a disciplina',  dis.pos, add)
                     array_creditos[-1] += dis.qtd_creditos
                     doc.disciplinas.append(dis.string_cod_turma())
             print("Quantidade total de creditos:", array_creditos[-1])
-
+            print("Conflitos:", doc.conflitos)
             print()
         media_creditos = sum(array_creditos)/len(self.docentes)
         variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
         desvio_padrao = math.sqrt(variancia)
-        print('Preferencias atendidas =', qtd_preferencias)
+
+        print('Preferencias atendidas =', sum(qtds_pref))
         print('Total de pesos de preferencia atendidos =', qtd_preferencias_peso)
         print('Quantidade de primeiros lugar no ranking ganhadores =', qtd_primeir_ranking_ganhador)
         print('Media de créditos: ', media_creditos)
         print('Variancia de créditos: ', variancia)
         print('Desvio padrão de créditos: ', desvio_padrao)
 
-        am = array_manipulator()
-        am.save_as_json(self.docentes, True)   
 
+
+        am = array_manipulator()
+        am.save_as_json(self.docentes, True)  
+        total_pref = sum(qtds_pref)
+        return {
+            "Percentual de preferencias atendidas": str(math.trunc((total_pref/(len(self.docentes)*5))*10000)/100) + "%",
+            "Percentual de aulas que eram preferidas": str(math.trunc((total_pref/len(self.disciplinas))*10000)/100) + "%",
+            "Percentual de preferencias de nível 5 atendidas": str(math.trunc((qtds_pref[4]/len(self.docentes))*10000)/100) + "%",
+            "Percentual de preferencias de nível 4 atendidas": str(math.trunc((qtds_pref[3]/len(self.docentes))*10000)/100) + "%",
+            "Percentual de preferencias de nível 3 atendidas": str(math.trunc((qtds_pref[2]/len(self.docentes))*10000)/100) + "%",
+            "Média de créditos": math.trunc(media_creditos*100)/100,
+            "Desvio padrão": math.trunc(desvio_padrao*100)/100
+        } 
+    def truncate(number, decimals=0):
+        factor = 10.0 ** decimals
+        return math.trunc(number * factor) / factor
+    
     def verifica_solucao(self):
+        retorno = ''
         solver = cp_model.CpSolver()
         #solver.parameters.log_search_progress = True
 
@@ -238,7 +264,7 @@ class distribuicao_graduacao:
             print('Feasible solution:')
 
         if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-            self.exibe_solucao_achada(solver)
+            retorno = self.exibe_solucao_achada(solver)
 
         else:
             print('No solution found !')
@@ -247,6 +273,7 @@ class distribuicao_graduacao:
         print('  - conflicts: %i' % solver.NumConflicts())
         print('  - branches : %i' % solver.NumBranches())
         print('  - wall time: %f s' % solver.WallTime())
+        return retorno
                 
     def calcula(self, disciplinas, docentes):
         print("calculando")
@@ -269,7 +296,7 @@ class distribuicao_graduacao:
 
         self.modelo.Maximize(soma_opt)
 
-        self.verifica_solucao()
+        return self.verifica_solucao()
 
 def main():
     dg = distribuicao_graduacao()

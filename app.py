@@ -69,10 +69,12 @@ def optimize(file_type):
     with open('data/disciplinas.json', "r") as file:
         disciplinas = json.load(file)
 
-    dist_grad.calcula(disciplinas, docentes)
+    dados_solucao = dist_grad.calcula(disciplinas, docentes)
 
     with open('data/resultado.json', "w") as file:
         json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
+    with open('data/dados_solucao.json', "w") as file:
+        json.dump(dados_solucao, file)
 
     return 'Optimization'
 
@@ -81,6 +83,8 @@ def docentes_info():
     try:
         with open('data/resultado.json', 'r') as file:
             docentes = json.load(file)
+        with open('data/dados_solucao.json', 'r') as file:
+            dados_solucao = json.load(file)
         with open('data/disciplinas.json', 'r') as file:
             disciplinas = json.load(file)
     except:
@@ -94,7 +98,7 @@ def docentes_info():
         for dis in doc["disciplinas"]:
             doc["disciplinas_dados"].append(dict_cod_turma[dis])
 
-    return docentes
+    return {"docentes": docentes, "dados_solucao": dados_solucao}
 
 @app.route('/files-existence/<file_type>')
 def files_existence(file_type):

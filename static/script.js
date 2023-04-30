@@ -1,11 +1,12 @@
 var data_table = null;
 var type_json = true;
 var file_type = "json";
-
+var mostra_conflito = false;
 
 setDisplayInClass("csv", "none");
 setDisplayInClass("json", "flex");
 document.getElementById("toggle").checked = false;
+document.getElementById("mostra_conflito").checked = false;
 
 function setDisplayInClass(my_class, my_display){
     csvElements = document.getElementsByClassName(my_class);
@@ -28,16 +29,24 @@ function toggleFileType(){
     check_files_existence();
 }
 
-function show_docent_diciplins(docent_name, docents){
+function toggleShowConflicts(){
+     mostra_conflito = !mostra_conflito;
+     docent_name = document.getElementById("docent_names").selectedOptions[0].value;
+     put_names_in_select();
+     clear_table();
+     show_docent_diciplins(docent_name);
+}
+
+function show_docent_diciplins(docent_name){
     var tabela = document.getElementById("horario");
     var i = 0;
 
-    while(i < docents.length && docents[i]["nome"] != docent_name){
+    while(i < data_table.length && data_table[i]["nome"] != docent_name){
         i++;
     }
 
-    if(i < docents.length){
-        var disci_dados = docents[i]["disciplinas_dados"]
+    if(i < data_table.length){
+        var disci_dados = data_table[i]["disciplinas_dados"]
 
         for(var j = 0; j < disci_dados.length; j++){    
             var horarios = disci_dados[j]["horarios"]
@@ -47,7 +56,14 @@ function show_docent_diciplins(docent_name, docents){
                 pos_hora_inicio = parseInt(horarios[k]["hora_inicio"].split(':')) - 6;
                 pos_hora_fim = parseInt(horarios[k]["hora_fim"].split(':')) - 6;
                 pos_dia = horarios[k]["dia_semana"];
-                innerHTML = "<p>" + docents[i]["disciplinas"][j] + "</p>";
+                cod = data_table[i]["disciplinas"][j]
+                code_splited = cod.split('_')
+
+                innerHTML = "<p>"
+                if(mostra_conflito && data_table[i]["conflitos"].includes(cod)){
+                    innerHTML = "<p class='conflito_horario'>"
+                }
+                innerHTML = innerHTML + code_splited[0] + "</br>" + code_splited[1] + "</p>";
 
                 for(var a = pos_hora_inicio; a <= pos_hora_fim; a++){
                     tabela.getElementsByTagName("tr")[a].getElementsByTagName("td")[pos_dia].innerHTML = innerHTML
@@ -58,12 +74,16 @@ function show_docent_diciplins(docent_name, docents){
     }
 }
 
-function put_names_in_select(docent){
+function put_names_in_select(){
     var select = document.getElementById("docent_names")
-    docent.forEach(element => {
+    select.innerHTML = ''
+    data_table.forEach(element => {
         var opt = document.createElement('option');
         opt.value = element["nome"];
         opt.innerHTML = element["nome"];
+        if(mostra_conflito && element["conflitos"].length > 0){
+            opt.innerHTML = element["nome"] + "*";
+        }
         select.appendChild(opt);
     });
 }
@@ -121,26 +141,40 @@ function format_name(name){
     return arr_name[0]
 }
 
-function materias_que_serao_liberadas(data){
+function organiza_tabelas_preferencias(){
+    var datas = []
+    datas.push(data_table.slice(0,8))
+    datas.push(data_table.slice(8,16))
+    datas.push(data_table.slice(16))
+    document.getElementById("tabela_preferencias").innerHTML = "";
+    
+    for (var i in datas) {
+        var tabela = document.createElement('table');
+        document.getElementById("tabela_preferencias").appendChild(tabela);
+        preenche_tabela_preferencias(datas[i], tabela);
+    }
+}
+
+function materias_serao_foram_liberadas(periodo_3, periodo_2, periodo_1, id){
     var disciplinas_liberadas = []
 
-    for (i in data) {
-        var disciplinas_seguidas = data[i]["disc_per_2"]
+    for (i in data_table) {
+        var disciplinas_seguidas = data_table[i]["disc_per_2"]
         for (j in disciplinas_seguidas){
-            if(!(disciplinas_seguidas[j] in data[i]["disc_per_1"])){
+            if(!(disciplinas_seguidas[j] in data_table[i]["disc_per_1"])){
                 disciplinas_seguidas.pop(j)
             }
         }
 
         for (j in disciplinas_seguidas){
-            if(!(disciplinas_seguidas[j] in data[i]["disciplinas"])){
+            if(!(disciplinas_seguidas[j] in data_table[i]["disciplinas"])){
                 disciplinas_seguidas.pop(j)
             }
         }
 
         disciplinas_liberadas = disciplinas_liberadas.concat(disciplinas_seguidas)
     }
-    var lista = document.getElementById("disciplinas_liberadas")
+    var lista = document.getElementById("disciplinas_serao_liberadas")
     for(i in disciplinas_liberadas){
         var novo_item = document.createElement('li') 
         novo_item.innerHTML = disciplinas_liberadas[i]
@@ -148,9 +182,13 @@ function materias_que_serao_liberadas(data){
     }
 }
 
+function materias_liberadas(){
+    materias_serao_foram_liberadas("disc_per_2", "disc_per_1", "disciplinas", "disciplinas_serao_liberadas")
+    materias_serao_foram_liberadas("disc_per_3", "disc_per_2", "disc_per_1", "disciplinas_foram_liberadas")
+}
+
 function preenche_tabela_preferencias(data, tabela){
     tabela.innerHTML = "";
-    console.log(data);
 
     var head = tabela.createTHead();
     var row = head.insertRow(0);
@@ -178,8 +216,6 @@ function preenche_tabela_preferencias(data, tabela){
             }
         }
     }
-    console.log(tabela)
-
 }
 
 function create_table(){
@@ -227,6 +263,16 @@ function config_upload_files(){
     });
 }
 
+function optimization_data(data){
+    opt_data = document.getElementById("optimization_data");
+    opt_data.innerHTML = '';
+    for(let d in data){
+        var opt = document.createElement('p');
+        opt.innerHTML = d + ": " + data[d];
+        opt_data.appendChild(opt);
+    }
+}
+
 function optimize(){
     $.ajax({
         type: "POST",
@@ -236,7 +282,7 @@ function optimize(){
         success: function(response) {
             get_data_table();
             check_files_existence();
-            setTimeout(() => materias_que_serao_liberadas(data_table), 500);
+            setTimeout(() => materias_liberadas(), 500);
         },
         error: function(xhr, status, error) {
             console.error(error);
@@ -249,22 +295,10 @@ function get_data_table(){
         url: "docentes-info",
         dataType: "json",
         success: function(data) {
-            data_table = data;
-            put_names_in_select(data_table);
-
-            var datas = []
-            datas.push(data_table.slice(0,8))
-            datas.push(data_table.slice(8,16))
-            datas.push(data_table.slice(16))
-            document.getElementById("tabela_preferencias").innerHTML = "";
-            
-            for (var i in datas) {
-                var tabela = document.createElement('table');
-                document.getElementById("tabela_preferencias").appendChild(tabela);
-                preenche_tabela_preferencias(datas[i], tabela);
-            }
-            console.log(document.getElementById("tabela_preferencias"))
-
+            data_table = data["docentes"];
+            optimization_data(data["dados_solucao"])
+            put_names_in_select();
+            organiza_tabelas_preferencias();
         },
         error: function(xhr, status, error) {
             window.alert(xhr.responseText)
@@ -302,8 +336,8 @@ function check_files_existence(){
 }
 
 function select_docente(docent){
-    clear_table()
-    show_docent_diciplins(docent.target.value, data_table);
+    clear_table();
+    show_docent_diciplins(docent.target.value);
 }
 
 $(document).ready(function() {
@@ -312,6 +346,6 @@ $(document).ready(function() {
 
     document.getElementById("docent_names").addEventListener("change", select_docente)
     config_upload_files();
-    setTimeout(() => materias_que_serao_liberadas(data_table), 2400);
+    setTimeout(() => materias_liberadas(), 2400);
 
 });

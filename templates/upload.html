@@ -70,15 +70,22 @@
             </div>
         </div>
 
+        <div id="optimization_data"></div>
 
         <label for="docent_names">Choose a teacher:</label>
         <select name="docent_names" id="docent_names"></select> 
+        <label for="docent_names">Choose a teacher:
+            <input onclick="toggleShowConflicts()" type="checkbox" id="mostra_conflito" checked>
+        </label>
         <table id="horario"></table>
 
         <div id="tabela_preferencias"></div>
 
+        <h3>Lista de disciplinas que estão liberadas</h3>
+        <ul id="disciplinas_estao_liberadas"></ul>
+
         <h3>Lista de disciplinas que serão liberadas</h3>
-        <ul id="disciplinas_liberadas"></ul>
+        <ul id="disciplinas_serao_liberadas"></ul>
 
 
         <script type="text/javascript" src="static/script.js" ></script>

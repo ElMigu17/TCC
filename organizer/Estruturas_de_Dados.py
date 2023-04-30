@@ -51,15 +51,14 @@ class docente:
         self.reducao = reducao
         self.preferencia = {}
         self.disciplinas = []
+        self.conflitos = []
         self.disc_per_1 = []  #disciplina periodo -1
         self.disc_per_2 = []
         self.disc_per_3 = []
     
-
     def dict_to_docente(self, my_dict):
         for key in my_dict:
             setattr(self, key, my_dict[key])
-
     
     def add_info_ultimo_periodo(self, num_disc_anterior, estudantes_fim_anterior, qtd_credito_anterior):
         self.num_disc_anterior = num_disc_anterior
