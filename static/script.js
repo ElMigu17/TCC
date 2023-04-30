@@ -142,16 +142,26 @@ function format_name(name){
 }
 
 function organiza_tabelas_preferencias(){
-    var datas = []
-    datas.push(data_table.slice(0,8))
-    datas.push(data_table.slice(8,16))
-    datas.push(data_table.slice(16))
+    var width_avaliable = $(window).width()-180-43
+    var qtd_profs = Math.trunc(width_avaliable/142)
+    var qtd_tabela = Math.trunc(data_table.length/qtd_profs)
+    //40
+    console.log($(window).width())
+    console.log(width_avaliable, qtd_profs, qtd_tabela)
+
+    if(qtd_tabela !== Math.trunc(qtd_tabela)){
+        qtd_tabela = Math.trunc(qtd_tabela)
+        qtd_tabela++
+    }
     document.getElementById("tabela_preferencias").innerHTML = "";
-    
-    for (var i in datas) {
+    console.log(data_table.length)
+    for(var i=1; i<=qtd_tabela; i++){
+        start = (i-1)*qtd_profs
+        end = i*qtd_profs
+        let sliced_data = data_table.slice(start, end)
         var tabela = document.createElement('table');
         document.getElementById("tabela_preferencias").appendChild(tabela);
-        preenche_tabela_preferencias(datas[i], tabela);
+        preenche_tabela_preferencias(sliced_data, tabela);
     }
 }
 
@@ -159,22 +169,23 @@ function materias_serao_foram_liberadas(periodo_3, periodo_2, periodo_1, id){
     var disciplinas_liberadas = []
 
     for (i in data_table) {
-        var disciplinas_seguidas = data_table[i]["disc_per_2"]
+        var disciplinas_seguidas = data_table[i][periodo_1]
         for (j in disciplinas_seguidas){
-            if(!(disciplinas_seguidas[j] in data_table[i]["disc_per_1"])){
+            if(!(disciplinas_seguidas[j] in data_table[i][periodo_2])){
                 disciplinas_seguidas.pop(j)
             }
         }
 
         for (j in disciplinas_seguidas){
-            if(!(disciplinas_seguidas[j] in data_table[i]["disciplinas"])){
+            if(!(disciplinas_seguidas[j] in data_table[i][periodo_3])){
                 disciplinas_seguidas.pop(j)
             }
         }
 
         disciplinas_liberadas = disciplinas_liberadas.concat(disciplinas_seguidas)
     }
-    var lista = document.getElementById("disciplinas_serao_liberadas")
+    var lista = document.getElementById(id)
+
     for(i in disciplinas_liberadas){
         var novo_item = document.createElement('li') 
         novo_item.innerHTML = disciplinas_liberadas[i]
@@ -184,7 +195,7 @@ function materias_serao_foram_liberadas(periodo_3, periodo_2, periodo_1, id){
 
 function materias_liberadas(){
     materias_serao_foram_liberadas("disc_per_2", "disc_per_1", "disciplinas", "disciplinas_serao_liberadas")
-    materias_serao_foram_liberadas("disc_per_3", "disc_per_2", "disc_per_1", "disciplinas_foram_liberadas")
+    materias_serao_foram_liberadas("disc_per_3", "disc_per_2", "disc_per_1", "disciplinas_estao_liberadas")
 }
 
 function preenche_tabela_preferencias(data, tabela){
