@@ -28,9 +28,8 @@ class leitor_csv:
         if not Dados_Gerais[0][0].isdigit():
             Dados_Gerais.pop(0)
 
-        prox_disciplina = {}
+        aux_disciplina = {}
         id_i = 0
-        index = 0
 
         def descobre_qtd_creditos(horarios):
             if(horarios[1].split(":")[1] == '50'):
@@ -38,42 +37,50 @@ class leitor_csv:
             else:
                 return 2
             
-        def cria_prox_disciplina(dado):
-            prox_disciplina = {}
+        def cria_prox_disciplina(i):
+            dado = Dados_Gerais[i]
+            aux_disciplina = {}
             horarios = dado[6].split(' - ')
-            prox_disciplina['horarios'] = [{ "dia_semana": self.dia_num[dado[5]], "hora_inicio": horarios[0], "hora_fim": horarios[1]}]
-            prox_disciplina['disciplina'] = dado[0]
-            prox_disciplina['turmas'] = [dado[7]]
-            prox_disciplina['qtd_creditos'] = descobre_qtd_creditos(horarios)
+            aux_disciplina['horarios'] = [{ "dia_semana": self.dia_num[dado[5]], "hora_inicio": horarios[0], "hora_fim": horarios[1]}]
+            aux_disciplina['disciplina'] = dado[0]
+            aux_disciplina['turmas'] = [dado[7]]
+            aux_disciplina['qtd_creditos'] = descobre_qtd_creditos(horarios)
+            i += 1
+            while i < len(Dados_Gerais) and Dados_Gerais[i][0] == '':
+                aux_disciplina['turmas'].append(dado[7])
+                i += 1
 
-            return prox_disciplina
-        while len(Dados_Gerais[index]) > 2 and len(Dados_Gerais) > index:
-            dado = Dados_Gerais[index]
-            if dado[0] == '':
-                if not dado[7] in prox_disciplina['turmas']:
-                    prox_disciplina['turmas'].append(dado[7])
+            return aux_disciplina, i
+        
+        prox_disciplina, index = cria_prox_disciplina(0)
+        while len(Dados_Gerais) > index and len(Dados_Gerais[index]) > 2:
+            aux_disciplina, index = cria_prox_disciplina(index)
+            print(aux_disciplina["disciplina"])
+            print(aux_disciplina["turmas"] == prox_disciplina["turmas"],aux_disciplina["turmas"], prox_disciplina["turmas"])
+            if(aux_disciplina["disciplina"] == prox_disciplina["disciplina"] and 
+               aux_disciplina["turmas"] == prox_disciplina["turmas"]):
+                print("aaaaaaaaaaaa")
 
+                prox_disciplina["horarios"].append(aux_disciplina["horarios"][0])
+                prox_disciplina['qtd_creditos'] += aux_disciplina['qtd_creditos']
+                aux_disciplina = {}
+            
             else:
-                if not bool(prox_disciplina):
-                    prox_disciplina = cria_prox_disciplina(dado)
-                    continue
+                self.disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
+                    prox_disciplina['qtd_creditos'],
+                    prox_disciplina['horarios'], 
+                    True, 
+                    prox_disciplina['turmas']))
+                prox_disciplina = aux_disciplina
+                aux_disciplina = {}
+                id_i += 1
 
-                if ((dado[0] != prox_disciplina['disciplina']) 
-                or (not dado[7] in prox_disciplina['turmas'])):
 
-                    self.disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
-                        prox_disciplina['qtd_creditos'],
-                        prox_disciplina['horarios'], 
-                        True, 
-                        prox_disciplina['turmas']))
-                    id_i += 1
-
-                    prox_disciplina = cria_prox_disciplina(dado)
-                else:
-                    horarios = dado[6].split(' - ')
-                    prox_disciplina['horarios'].append({ "dia_semana": self.dia_num[dado[5]], "hora_inicio": horarios[0], "hora_fim": horarios[1]})          
-                    prox_disciplina['qtd_creditos'] += descobre_qtd_creditos(horarios)
-            index += 1
+        self.disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
+            prox_disciplina['qtd_creditos'],
+            prox_disciplina['horarios'], 
+            True, 
+            prox_disciplina['turmas']))
 
     def importa_dados_profs(self, caminho_arquivo):
         doscentes_dados = ""

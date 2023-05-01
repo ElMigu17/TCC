@@ -27,8 +27,8 @@
                 <input type="submit" value="Submit">
                 <button onclick="optimize()">Resolver</button>
 
-                <label for="export">Exportar csv da distribuição desse semestre:</label><br>
-                <input type="file" id="export" name="export"><br><br>
+                <label for="export">Download json da distribuição desse semestre:</label><br>
+                <p> <a href="{{url_for('Download_File', file_type = 'json')}}">Download</a></p>
             </div>
 
             <div class="csv">
@@ -48,13 +48,15 @@
                 <input type="file" id="preferencias" name="preferencias"><br><br>
 
                 <input type="submit" value="Submit">
-                <button onclick="optimize()">Resolver</button>
+                <button onclick="optimize()">Resolver</button>  
 
-                <label for="export">Exportar csv da distribuição desse semestre:</label><br>
-                <input type="file" id="export" name="export"><br><br>
+                <label for="export">Download csv da distribuição desse semestre:</label><br>
+                <p> <a href="{{url_for('Download_File', file_type = 'csv')}}">Download</a></p>
             </div>
         </form>
+        
 
+        
         <div id="presenca-de-arquivo">
             <div class="json">
                 <div class="ausente">Arquivo de disciplina ausente</div>

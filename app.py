@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_file
 import json
 from organizer.Modelo import distribuicao_graduacao
 from organizer.Estruturas_de_Dados import array_manipulator
@@ -75,7 +75,6 @@ def optimize(file_type):
         json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
     with open('data/dados_solucao.json', "w") as file:
         json.dump(dados_solucao, file)
-
     return 'Optimization'
 
 @app.route('/docentes-info')
@@ -116,9 +115,66 @@ def files_existence(file_type):
 
     return existencia
 
+@app.route('/download/<file_type>')
+def Download_File(file_type):
+    if not os.path.exists("data/resultado.json"):
+        return "Arquivo de otimização não encontrado"
+    
+    if file_type == "csv":
+        generate_resultado_csv()
+
+    PATH='data/resultado.' + file_type
+    return send_file(PATH,as_attachment=True, download_name=("distribuicao_prox_semestre." + file_type))
+
+
 def converte_scss():
     sass.compile(dirname=('static/sass', 'static/css'), output_style='compressed')
 
+def generate_resultado_csv():
+    with open("data/resultado.json", 'r') as file:
+        resultado_json = json.load(file)
+    with open("data/disciplinas_prox.csv", 'r') as file:
+        Dados_Gerais = file.read()
+    dados_output = ""
+    novos_dados = Dados_Gerais
+    novos_dados = Dados_Gerais.split("\n")
+    dados_output = novos_dados.pop(0) + "\n"
+    Dados_Gerais = list(map(lambda d: d.split(","),novos_dados))
+
+    def find_doc(cod_turma):
+        i = 0
+        while i < len(resultado_json):
+            if cod_turma in resultado_json[i]["disciplinas"]:
+                return resultado_json[i]["nome"]
+            i += 1
+        raise ValueError("Não foi encontrado professor que ministra essa disciplina")
+
+    for i in range(len(Dados_Gerais)):
+        dado = Dados_Gerais[i]
+
+        if dado[0] == '':
+            dados_output += novos_dados[i] + "\n"
+            continue
+        codigo_turma = dado[0] + "_" 
+        turmas = [dado[7]]
+
+        j = i+1
+        while len(Dados_Gerais[j]) > 1 and Dados_Gerais[j][0] == '':
+            turmas.append(Dados_Gerais[j][7])
+            j += 1
+        turmas.sort()
+        codigo_turma += ''.join(turmas)
+
+        prof = find_doc(codigo_turma)
+        dado[14] = prof
+
+        for d in dado:
+            dados_output += d + ","
+        dados_output = dados_output[:-1]
+        dados_output += "\n"
+
+    with open('data/resultado.csv', 'w') as file:
+        file.write(dados_output)
 
 if __name__ == '__main__':
     app.run(debug=True)

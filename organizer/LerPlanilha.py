@@ -35,9 +35,12 @@ def importa_dados_disciplinas():
         return prox_disciplina
 
 
-    for i in Dados_Gerais.index:
+
+    prox_disciplina = cria_prox_disciplina(Dados_Gerais.loc[0])
+    for i in range(1, len(Dados_Gerais)):
         dado = Dados_Gerais.loc[i]
         if pd.isna(dado['Disciplina']):
+            print("isna")
             if not dado['Turma'] in prox_disciplina['turmas']:
                 prox_disciplina['turmas'].append(dado['Turma'])
 
@@ -46,9 +49,8 @@ def importa_dados_disciplinas():
                 prox_disciplina = cria_prox_disciplina(dado)
                 continue
 
-            if ((dado['Disciplina'] != prox_disciplina['disciplina']) 
-              or (not dado['Turma'] in prox_disciplina['turmas'])):
-
+            if ((not dado['Turma'] in prox_disciplina['turmas'])):
+                print(dado['Disciplina'] != '', dado['Disciplina'] )
                 disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
                     prox_disciplina['qtd_creditos'],
                     prox_disciplina['horarios'], 
@@ -58,9 +60,17 @@ def importa_dados_disciplinas():
 
                 prox_disciplina = cria_prox_disciplina(dado)
             else:
+                print("horarionovo")
                 horarios = dado['Horário'].split(' - ')
                 prox_disciplina['horarios'].append({ "dia_semana": dia_num[dado['Dia']], "hora_inicio": horarios[0], "hora_fim": horarios[1]})          
                 prox_disciplina['qtd_creditos'] += descobre_qtd_creditos(horarios)
+
+    disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
+        prox_disciplina['qtd_creditos'],
+        prox_disciplina['horarios'], 
+        True, 
+        prox_disciplina['turmas']))
+    
 
 def importa_dados_profs():
     doscentes_dados = pd.read_excel('Modelos/Doscentes.xlsx')

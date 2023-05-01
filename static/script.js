@@ -145,9 +145,6 @@ function organiza_tabelas_preferencias(){
     var width_avaliable = $(window).width()-180-43
     var qtd_profs = Math.trunc(width_avaliable/142)
     var qtd_tabela = Math.trunc(data_table.length/qtd_profs)
-    //40
-    console.log($(window).width())
-    console.log(width_avaliable, qtd_profs, qtd_tabela)
 
     if(qtd_tabela !== Math.trunc(qtd_tabela)){
         qtd_tabela = Math.trunc(qtd_tabela)
@@ -310,6 +307,19 @@ function get_data_table(){
             optimization_data(data["dados_solucao"])
             put_names_in_select();
             organiza_tabelas_preferencias();
+        },
+        error: function(xhr, status, error) {
+            window.alert(xhr.responseText)
+        }
+    });
+}
+
+function download_link(){
+    $.ajax({
+        url: "download",
+        dataType: "json",
+        success: function(data) {
+            return data
         },
         error: function(xhr, status, error) {
             window.alert(xhr.responseText)

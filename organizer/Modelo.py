@@ -188,7 +188,6 @@ class distribuicao_graduacao:
         qtd_primeir_ranking_ganhador = 0
         array_creditos = []
         conflitos = self.todos_conflitos_horario()
-        print(conflitos)
 
         for doc in self.docentes:
             array_creditos.append(0)
