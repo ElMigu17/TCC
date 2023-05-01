@@ -46,8 +46,8 @@ class leitor_csv:
             aux_disciplina['turmas'] = [dado[7]]
             aux_disciplina['qtd_creditos'] = descobre_qtd_creditos(horarios)
             i += 1
-            while i < len(Dados_Gerais) and Dados_Gerais[i][0] == '':
-                aux_disciplina['turmas'].append(dado[7])
+            while i < len(Dados_Gerais) and len(Dados_Gerais[i]) >2 and Dados_Gerais[i][0] == '':
+                aux_disciplina['turmas'].append(Dados_Gerais[i][7])
                 i += 1
 
             return aux_disciplina, i
