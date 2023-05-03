@@ -7,81 +7,117 @@
     </head>
     <body>
 
-        <div id="toggle-file-type">
-            <p>.json</p>
-            <label class="switch">
-                <input onclick="toggleFileType()" type="checkbox" id="toggle" checked>
-                <span class="slider round"></span>
-            </label>
-            <p>.csv</p>
-        </div>
-        <form id="envioArquivos" >
-            <div class="json">
-                <h3>Enviar arquivo do tipo json com os dados:</h3>
-                <label for="disciplinas">Disciplinas:</label><br>
-                <input type="file" id="disciplinas" name="disciplinas"><br><br>
-
-                <label for="docentes">Docentes:</label><br>
-                <input type="file" id="docentes" name="docentes"><br><br>
-
-                <input type="submit" value="Submit">
-                <button onclick="optimize()">Resolver</button>
-
-                <label for="export">Download json da distribuição desse semestre:</label><br>
-                <p> <a href="{{url_for('Download_File', file_type = 'json')}}">Download</a></p>
-            </div>
-
-            <div class="csv">
-                <h3>Enviar arquivo do tipo csv com os dados:</h3>
-                <label for="docentes_csv">Dos docentes 
-                    no próximo semestre:</label><br>
-                <input type="file" id="docentes_csv" name="docentes_csv"><br><br>
-
-                <label for="ultimo_semestre">Do ultimo semestre:</label><br>
-                <input type="file" id="ultimo_semestre" name="ultimo_semestre"><br><br>
-
-                <label for="disciplinas_prox">Das disciplinas 
-                    no próximo semestre:</label><br>
-                <input type="file" id="disciplinas_prox" name="disciplinas_prox"><br><br>
-
-                <label for="preferencias">Das preferencias:</label><br>
-                <input type="file" id="preferencias" name="preferencias"><br><br>
-
-                <input type="submit" value="Submit">
-                <button onclick="optimize()">Resolver</button>  
-
-                <label for="export">Download csv da distribuição desse semestre:</label><br>
-                <p> <a href="{{url_for('Download_File', file_type = 'csv')}}">Download</a></p>
-            </div>
-        </form>
-        
-
-        
-        <div id="presenca-de-arquivo">
-            <div class="json">
-                <div class="ausente">Arquivo de disciplina ausente</div>
-                <div class="ausente">Arquivo de docentes ausente</div>
-                <div class="ausente">Arquivo de resultado da otimização ausente</div>
-            </div>
-            <div class="csv">
-                <div class="ausente">Arquivo de professores ausente</div>
-                <div class="ausente">Arquivo de ultimo semestre ausente</div>
-                <div class="ausente">Arquivo de disciplinas no próximo semestre ausente</div>
-                <div class="ausente">Arquivo de preferencias ausente</div>
-                <div class="ausente">Arquivo de resultado da otimização ausente</div>
+        <div class="pos-toggle">
+            <div id="toggle-file-type">
+                <p>.json</p>
+                <label class="switch">
+                    <input onclick="toggleFileType()" type="checkbox" id="toggle" checked>
+                    <span class="slider round"></span>
+                </label>
+                <p>.csv</p>
             </div>
         </div>
 
+
+        <div class="pos_painel_arquivos">
+            <div class="painel_arquivos">
+                <hr class="linha_painel"/>
+                <form id="envioArquivos" >
+                    <div class="json">
+                        <h3>Enviar arquivo do tipo json com os dados:</h3>
+
+                        <p class="label-file">Disciplinas:</p>
+                        <label for="disciplinas" class="label-selecao-arquivo botao">Selecionar arquivo</label><br>
+                        <input type="file" 
+                        id="disciplinas" 
+                        class="botao-selecao-arquivo"
+                        name="disciplinas" 
+                        accept=".json"><br><br>
+
+                        <p class="label-file">Docentes:</p>
+                        <label for="docentes" class="label-selecao-arquivo botao">Selecionar arquivo</label><br>
+                        <input 
+                        type="file" 
+                        id="docentes" 
+                        class="botao-selecao-arquivo"
+                        name="docentes" 
+                        placeholder="Escolher"
+                        accept=".json"><br><br>
+
+                        <div class="botoes-de-solucao">
+                            <input type="submit" value="Enviar arquivos" class="botao">
+                            <button onclick="optimize()" class="botao">Resolver</button>
+                        </div>
+                        
+                        <label class="download-label" for="export">Download json da distribuição desse semestre:</label><br>
+                        <a class="botao" href="{{url_for('Download_File', file_type = 'json')}}">Download</a>
+                    </div>
+
+                    <div class="csv">
+                        <h3>Enviar arquivo do tipo csv com os dados:</h3>
+
+                        <p class="label-file">Docentes no próximo semestre:</p>
+                        <label for="docentes_csv" class="botao">Selecionar arquivo</label><br>
+                        <input type="file" id="docentes_csv" name="docentes_csv" class="botao-selecao-arquivo"><br><br>
+
+                        <p class="label-file">Ultimo semestre:</p>
+                        <label for="ultimo_semestre" class="botao">Selecionar arquivo</label><br>
+                        <input type="file" id="ultimo_semestre" name="ultimo_semestre" class="botao-selecao-arquivo"><br><br>
+
+                        <p class="label-file">Disciplinas no próximo semestre:</p>
+                        <label for="disciplinas_prox" class="botao">Selecionar arquivo</label><br>
+                        <input type="file" id="disciplinas_prox" name="disciplinas_prox" class="botao-selecao-arquivo"><br><br>
+
+                        <p class="label-file">Preferencias:</p>
+                        <label for="preferencias" class="botao">Selecionar arquivo</label><br>
+                        <input type="file" id="preferencias" name="preferencias" class="botao-selecao-arquivo"><br><br>
+
+                        <div class="botoes-de-solucao">
+                            <input type="submit" value="Enviar arquivos" class="botao">
+                            <button onclick="optimize()" class="botao">Resolver</button>  
+                        </div>
+
+                        <label class="download-label" for="export">Download csv da distribuição desse semestre:</label><br>
+                        <a class="botao" href="{{url_for('Download_File', file_type = 'csv')}}" >Download</a>
+                    </div>
+                </form>
+                
+
+                
+                <div id="presenca-de-arquivo">
+                    <div class="json">
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de disciplina ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de docentes ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de resultado ausente</div>
+                    </div>
+                    <div class="csv">
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de professores ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de ultimo semestre ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de disciplinas no próximo semestre ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de preferencias ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de resultado da otimização ausente</div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="optimization_data"></div>
+        <div class="pos-tabela">
+            <div class="config-tab">
+                <div>
+                    <label for="docent_names">Choose a teacher:</label>
+                    <select name="docent_names" id="docent_names"></select> 
+                </div>
+                <label for="docent_names">Mostrar infrações
+                    <input onclick="toggleShowConflicts()" type="checkbox" id="mostra_conflito" checked>
+                </label>
+            </div>
+            <div>
+                <table id="horario"></table>
+            </div>
+        </div>
 
-        <label for="docent_names">Choose a teacher:</label>
-        <select name="docent_names" id="docent_names"></select> 
-        <label for="docent_names">Choose a teacher:
-            <input onclick="toggleShowConflicts()" type="checkbox" id="mostra_conflito" checked>
-        </label>
-        <table id="horario"></table>
+            <div id="tabela_preferencias"></div>
 
-        <div id="tabela_preferencias"></div>
 
         <h3>Lista de disciplinas que estão liberadas</h3>
         <ul id="disciplinas_estao_liberadas"></ul>

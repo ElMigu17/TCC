@@ -94,6 +94,7 @@ def docentes_info():
 
     for doc in docentes:
         doc["disciplinas_dados"] = []
+        print(doc["nome"], doc["disciplinas"])
         for dis in doc["disciplinas"]:
             doc["disciplinas_dados"].append(dict_cod_turma[dis])
 

@@ -102,14 +102,16 @@ function clear_table(){
 
 function update_file_situation(exist, element){
     if(exist){
-        element.classList.remove("ausente")
-        element.classList.add("presente")
-        element.innerHTML = element.innerHTML.replace("ausente", "presente")
+        element.classList.remove("ausente");
+        element.classList.add("presente");
+        element.innerHTML = element.innerHTML.replace("ausente", "presente");
+        element.children[0].src = element.children[0].src.replace("X", "Check");
     }
     else{
-        element.classList.remove("presente")
-        element.classList.add("ausente")
-        element.innerHTML = element.innerHTML.replace("presente", "ausente")
+        element.classList.remove("presente");
+        element.classList.add("ausente");
+        element.innerHTML = element.innerHTML.replace("presente", "ausente");
+        element.children[0].src = element.children[0].src.replace("Check", "X");
     }
 }
 
@@ -151,7 +153,7 @@ function organiza_tabelas_preferencias(){
         qtd_tabela++
     }
     document.getElementById("tabela_preferencias").innerHTML = "";
-    console.log(data_table.length)
+    
     for(var i=1; i<=qtd_tabela; i++){
         start = (i-1)*qtd_profs
         end = i*qtd_profs
@@ -166,7 +168,7 @@ function materias_serao_foram_liberadas(periodo_3, periodo_2, periodo_1, id){
     var disciplinas_liberadas = []
 
     for (i in data_table) {
-        var disciplinas_seguidas = data_table[i][periodo_1]
+        var disciplinas_seguidas = structuredClone(data_table[i][periodo_1])
         for (j in disciplinas_seguidas){
             if(!(disciplinas_seguidas[j] in data_table[i][periodo_2])){
                 disciplinas_seguidas.pop(j)
@@ -191,6 +193,7 @@ function materias_serao_foram_liberadas(periodo_3, periodo_2, periodo_1, id){
 }
 
 function materias_liberadas(){
+    
     materias_serao_foram_liberadas("disc_per_2", "disc_per_1", "disciplinas", "disciplinas_serao_liberadas")
     materias_serao_foram_liberadas("disc_per_3", "disc_per_2", "disc_per_1", "disciplinas_estao_liberadas")
 }
