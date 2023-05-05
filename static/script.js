@@ -30,11 +30,11 @@ function toggleFileType(){
 }
 
 function toggleShowConflicts(){
-     mostra_conflito = !mostra_conflito;
-     docent_name = document.getElementById("docent_names").selectedOptions[0].value;
-     put_names_in_select();
-     clear_table();
-     show_docent_diciplins(docent_name);
+    mostra_conflito = !mostra_conflito;
+    docent_name = document.getElementById("docent_names").selectedOptions[0].value;
+    put_names_in_select();
+    clear_table();
+    show_docent_diciplins(docent_name);
 }
 
 function show_docent_diciplins(docent_name){
@@ -76,6 +76,7 @@ function show_docent_diciplins(docent_name){
 
 function put_names_in_select(){
     var select = document.getElementById("docent_names")
+    let selected = select.value;
     select.innerHTML = ''
     data_table.forEach(element => {
         var opt = document.createElement('option');
@@ -276,7 +277,10 @@ function config_upload_files(){
 
 function optimization_data(data){
     opt_data = document.getElementById("optimization_data");
+    console.log(opt_data.getElementsByTagName("h3")[0])
+    titulo = opt_data.getElementsByTagName("h3")[0];
     opt_data.innerHTML = '';
+    opt_data.appendChild(titulo)
     for(let d in data){
         var opt = document.createElement('p');
         opt.innerHTML = d + ": " + data[d];

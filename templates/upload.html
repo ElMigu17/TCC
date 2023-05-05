@@ -19,7 +19,7 @@
         </div>
 
 
-        <div class="pos_painel_arquivos">
+        <div class="centraliza">
             <div class="painel_arquivos">
                 <hr class="linha_painel"/>
                 <form id="envioArquivos" >
@@ -99,9 +99,10 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div id="optimization_data"></div>
-        <div class="pos-tabela">
+            
+            <div id="optimization_data">
+                <h3>Dados da otimização encontrada:</h3>
+            </div>
             <div class="config-tab">
                 <div>
                     <label for="docent_names">Choose a teacher:</label>
@@ -114,18 +115,23 @@
             <div>
                 <table id="horario"></table>
             </div>
+        
+            <div>
+                <h3>Preferencias atendidas e não atendidas:</h3>
+                <div id="tabela_preferencias"></div>
+            </div>
+        
+            <div>
+                <h3>Lista de disciplinas que estão liberadas:</h3>
+                <ul id="disciplinas_estao_liberadas"></ul>
+            </div>
+            
+            <div>
+                <h3>Lista de disciplinas que serão liberadas:</h3>
+                <ul id="disciplinas_serao_liberadas"></ul>
+            </div>
         </div>
-
-            <div id="tabela_preferencias"></div>
-
-
-        <h3>Lista de disciplinas que estão liberadas</h3>
-        <ul id="disciplinas_estao_liberadas"></ul>
-
-        <h3>Lista de disciplinas que serão liberadas</h3>
-        <ul id="disciplinas_serao_liberadas"></ul>
-
-
+        
         <script type="text/javascript" src="static/script.js" ></script>
     </body>
 </html>
