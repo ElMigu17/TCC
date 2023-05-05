@@ -275,11 +275,15 @@ class distribuicao_graduacao:
         return retorno
                 
     def calcula(self, disciplinas, docentes):
-        print("calculando")
+        print("Resolvendo")
         am = array_manipulator()
         
         self.disciplinas = am.dict_to_obj(disciplinas)
         self.docentes = am.dict_to_obj(docentes) 
+        print("Disciplinas:")
+        print(self.disciplinas)
+        print("Docentes:")
+        print(self.docentes)
 
         self.modelo = cp_model.CpModel()
         self.matriz_de_correlacao()      

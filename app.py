@@ -49,7 +49,6 @@ def upload_file(request, file_name, file_type):
 @app.route('/optimize/<file_type>', methods=['POST'])
 def optimize(file_type):
     if file_type == 'csv':
-        print("csv")
         leitor = leitor_csv()
         leitor.main("data/docentes_csv.csv", "data/ultimo_semestre.csv", "data/disciplinas_prox.csv", "data/preferencias.csv")
         
@@ -71,10 +70,13 @@ def optimize(file_type):
 
     dados_solucao = dist_grad.calcula(disciplinas, docentes)
 
-    with open('data/resultado.json', "w") as file:
-        json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
-    with open('data/dados_solucao.json', "w") as file:
-        json.dump(dados_solucao, file)
+    if dados_solucao != '':
+        with open('data/resultado.json', "w") as file:
+            json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
+        with open('data/dados_solucao.json', "w") as file:
+            json.dump(dados_solucao, file)
+    else:
+        return 'No solution found'
     return 'Optimization'
 
 @app.route('/docentes-info')
@@ -94,7 +96,6 @@ def docentes_info():
 
     for doc in docentes:
         doc["disciplinas_dados"] = []
-        print(doc["nome"], doc["disciplinas"])
         for dis in doc["disciplinas"]:
             doc["disciplinas_dados"].append(dict_cod_turma[dis])
 

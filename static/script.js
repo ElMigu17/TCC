@@ -291,9 +291,14 @@ function optimize(){
         processData: false,
         contentType: false,
         success: function(response) {
-            get_data_table();
-            check_files_existence();
-            setTimeout(() => materias_liberadas(), 500);
+            if(response == 'No solution found'){
+                alert("Não foi encontrada solução")
+            }
+            else{
+                get_data_table();
+                check_files_existence();
+                setTimeout(() => materias_liberadas(), 500);
+            }
         },
         error: function(xhr, status, error) {
             console.error(error);
