@@ -1,6 +1,6 @@
 """Nurse scheduling problem with shift requests."""
 from ortools.sat.python import cp_model
-from organizer.Estruturas_de_Dados import disciplina, docente, array_manipulator
+from solver.Estruturas_de_Dados import disciplina, docente, array_manipulator
 import math
 
 class distribuicao_graduacao:

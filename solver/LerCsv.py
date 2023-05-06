@@ -1,4 +1,4 @@
-from organizer.Estruturas_de_Dados import disciplina, docente, array_manipulator
+from solver.Estruturas_de_Dados import disciplina, docente, array_manipulator
 
 class leitor_csv:
     def __init__(self) -> None:
