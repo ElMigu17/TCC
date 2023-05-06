@@ -1,8 +1,8 @@
 from flask import Flask, request, render_template, send_file
 import json
-from organizer.Modelo import distribuicao_graduacao
-from organizer.Estruturas_de_Dados import array_manipulator
-from organizer.LerCsv import leitor_csv
+from solver.Modelo import distribuicao_graduacao
+from solver.Estruturas_de_Dados import array_manipulator
+from solver.LerCsv import leitor_csv
 import sass
 import os
 
@@ -13,23 +13,23 @@ arr_man = array_manipulator()
 
 @app.route('/', methods=['GET'])
 def index():
-    converte_scss()
-    return render_template('upload.html')
+    converter_scss()
+    return render_template('index.html')
 
-@app.route('/upload/<file_type>', methods=['POST'])
-def upload(file_type):
-    if file_type == 'csv':
-        upload_file(request, 'docentes_csv', 'csv')
-        upload_file(request, 'ultimo_semestre', 'csv')
-        upload_file(request, 'disciplinas_prox', 'csv')
-        upload_file(request, 'preferencias', 'csv')
+@app.route('/enviar/<tipo_arquivo>', methods=['POST'])
+def enviar(tipo_arquivo):
+    if tipo_arquivo == 'csv':
+        enviar_file(request, 'docentes_csv', 'csv')
+        enviar_file(request, 'ultimo_semestre', 'csv')
+        enviar_file(request, 'disciplinas_prox', 'csv')
+        enviar_file(request, 'preferencias', 'csv')
     else:
-        upload_file(request, 'disciplinas', 'json')
-        upload_file(request, 'docentes', 'json')
+        enviar_file(request, 'disciplinas', 'json')
+        enviar_file(request, 'docentes', 'json')
    
     return "a"
 
-def upload_file(request, file_name, file_type):
+def enviar_file(request, file_name, tipo_arquivo):
     if file_name in request.files:
         file_out = request.files[file_name]
         data = file_out.read().decode('utf8')
@@ -37,7 +37,7 @@ def upload_file(request, file_name, file_type):
         if data == '':
             return "empty_file"
         
-        if file_type == 'json':
+        if tipo_arquivo == 'json':
             json_object = json.loads(data)
             with open('data/' + file_name + '.json', 'w') as file:
                 json.dump(json_object, file)
@@ -46,9 +46,9 @@ def upload_file(request, file_name, file_type):
             with open('data/' + file_name + '.csv', 'w') as file:
                 file.write(data)
 
-@app.route('/optimize/<file_type>', methods=['POST'])
-def optimize(file_type):
-    if file_type == 'csv':
+@app.route('/solver/<tipo_arquivo>', methods=['POST'])
+def solver(tipo_arquivo):
+    if tipo_arquivo == 'csv':
         leitor = leitor_csv()
         leitor.main("data/docentes_csv.csv", "data/ultimo_semestre.csv", "data/disciplinas_prox.csv", "data/preferencias.csv")
         
@@ -101,35 +101,35 @@ def docentes_info():
 
     return {"docentes": docentes, "dados_solucao": dados_solucao}
 
-@app.route('/files-existence/<file_type>')
-def files_existence(file_type):
+@app.route('/files-existence/<tipo_arquivo>')
+def files_existence(tipo_arquivo):
     existencia = {"disciplinas": False, "docentes": False}
-    if file_type == 'csv':
+    if tipo_arquivo == 'csv':
         existencia = {"docentes_csv": False, 
                       "ultimo_semestre": False, 
                       "disciplinas_prox": False,
                       "preferencias": False}
 
     for ex in existencia:
-        existencia[ex] = os.path.exists("data/" + ex + "." + file_type)
+        existencia[ex] = os.path.exists("data/" + ex + "." + tipo_arquivo)
 
     existencia["resultado"] = os.path.exists("data/resultado.json")
 
     return existencia
 
-@app.route('/download/<file_type>')
-def Download_File(file_type):
+@app.route('/download/<tipo_arquivo>')
+def Download_File(tipo_arquivo):
     if not os.path.exists("data/resultado.json"):
         return "Arquivo de otimização não encontrado"
     
-    if file_type == "csv":
+    if tipo_arquivo == "csv":
         generate_resultado_csv()
 
-    PATH='data/resultado.' + file_type
-    return send_file(PATH,as_attachment=True, download_name=("distribuicao_prox_semestre." + file_type))
+    PATH='data/resultado.' + tipo_arquivo
+    return send_file(PATH,as_attachment=True, download_name=("distribuicao_prox_semestre." + tipo_arquivo))
 
 
-def converte_scss():
+def converter_scss():
     sass.compile(dirname=('static/sass', 'static/css'), output_style='compressed')
 
 def generate_resultado_csv():
