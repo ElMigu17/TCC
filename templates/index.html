@@ -11,7 +11,7 @@
             <div id="toggle-file-type">
                 <p>.json</p>
                 <label class="switch">
-                    <input onclick="toggleFileType()" type="checkbox" id="toggle" checked>
+                    <input onclick="alternar_tipo_arquivo()" type="checkbox" id="toggle" checked>
                     <span class="slider round"></span>
                 </label>
                 <p>.csv</p>
@@ -46,11 +46,11 @@
 
                         <div class="botoes-de-solucao">
                             <input type="submit" value="Enviar arquivos" class="botao">
-                            <button onclick="optimize()" class="botao">Resolver</button>
+                            <button onclick="solver()" class="botao">Resolver</button>
                         </div>
                         
                         <label class="download-label" for="export">Download json da distribuição desse semestre:</label><br>
-                        <a class="botao" href="{{url_for('Download_File', file_type = 'json')}}">Download</a>
+                        <a class="botao" href="{{url_for('Download_File', tipo_arquivo = 'json')}}">Download</a>
                     </div>
 
                     <div class="csv">
@@ -74,11 +74,11 @@
 
                         <div class="botoes-de-solucao">
                             <input type="submit" value="Enviar arquivos" class="botao">
-                            <button onclick="optimize()" class="botao">Resolver</button>  
+                            <button onclick="solver()" class="botao">Resolver</button>  
                         </div>
 
                         <label class="download-label" for="export">Download csv da distribuição desse semestre:</label><br>
-                        <a class="botao" href="{{url_for('Download_File', file_type = 'csv')}}" >Download</a>
+                        <a class="botao" href="{{url_for('Download_File', tipo_arquivo = 'csv')}}" >Download</a>
                     </div>
                 </form>
                 
@@ -100,16 +100,16 @@
                 </div>
             </div>
             
-            <div id="optimization_data">
+            <div id="dados_solucao">
                 <h3>Dados da otimização encontrada:</h3>
             </div>
             <div class="config-tab">
                 <div>
-                    <label for="docent_names">Choose a teacher:</label>
-                    <select name="docent_names" id="docent_names"></select> 
+                    <label for="nome_docentes">Choose a teacher:</label>
+                    <select name="nome_docentes" id="nome_docentes"></select> 
                 </div>
-                <label for="docent_names">Mostrar infrações
-                    <input onclick="toggleShowConflicts()" type="checkbox" id="mostra_conflito" checked>
+                <label for="nome_docentes">Mostrar infrações
+                    <input onclick="alternar_mudanca_conflito()" type="checkbox" id="mostra_conflito" checked>
                 </label>
             </div>
             <div>
