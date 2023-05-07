@@ -203,31 +203,47 @@ function materias_liberadas(){
 function preenche_tabela_preferencias(data, tabela){
     tabela.innerHTML = "";
 
+    let qtd_rows = 0
     let head = tabela.createTHead();
-    let row = head.insertRow(0);
+    let row_head = head.insertRow(0);
+    let body = tabela.createTBody();
 
-    row.insertCell(j).innerHTML = "Peso";
     for(let i=0; i<data.length; i++){
-        row.insertCell(j).innerHTML = formata_nome(data[i]["nome"]);
+        if(data[i]["disciplinas_dados"].length > qtd_rows){
+            qtd_rows = data[i]["disciplinas_dados"].length
+        }
     }
 
-    let body = tabela.createTBody();
-    for(let i=0; i<5; i++){
-        row = body.insertRow(i);
-        row.insertCell(0).innerHTML = i+1;
-
-        for(let j=1; j<=data.length; j++){
-            let disciplina_turma = pega_disciplina_por_peso(data[j-1]["preferencia"], i+1)
-            let cell = row.insertCell(j)
-            
-            cell.innerHTML = disciplina_turma;
+    for(let i=0; i<qtd_rows; i++){
+        body.insertRow(i);   
+        let row_body = body.rows[i];            
+        for(let j=0; j<data.length; j++){
+            let cell = row_body.insertCell(j);
+            cell.innerHTML = "-"
             cell.classList.add("cell-preference")
+        }
+    }
+
+    console.log(data)
+    for(let i=0; i<data.length; i++){
+        row_head.insertCell(i).innerHTML = formata_nome(data[i]["nome"]);
+    }
+
+    for(let i=0; i<data.length; i++){
+        
+        let disciplinas_dados = data[i]["disciplinas_dados"];
+        console.log(disciplinas_dados.length)
+
+        for(let j=0; j<disciplinas_dados.length; j++){
+            let cell = body.rows[j].cells[i]
+            let cod_turma = string_cod_turma(disciplinas_dados[j]);
+            console.log(i,j,cod_turma);
+
+            cell.innerHTML = cod_turma;
             cell.style.backgroundColor = "red";
-            
-            for(let k in data[j-1]["disciplinas_dados"]){
-                if(string_cod_turma(data[j-1]["disciplinas_dados"][k]) == disciplina_turma){
-                    cell.style.backgroundColor = "green";
-                }
+
+            if(Object.keys(data[i]["preferencia"]).includes(cod_turma)){
+                cell.style.backgroundColor = "green";
             }
         }
     }
