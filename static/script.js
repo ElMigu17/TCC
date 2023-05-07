@@ -220,7 +220,6 @@ function preenche_tabela_preferencias(data, tabela){
         let row_body = body.rows[i];            
         for(let j=0; j<data.length; j++){
             let cell = row_body.insertCell(j);
-            cell.innerHTML = "-"
             cell.classList.add("cell-preference")
         }
     }
@@ -300,7 +299,16 @@ function mostra_analise_solucao(data){
     
     for(let d in data){
         let opt = document.createElement('p');
-        opt.innerHTML = d + ": " + data[d];
+        let anterior = d.split(" - ")[1];
+        if(data[d] == true) {
+            opt.innerHTML = anterior + " Houve";
+        }
+        else if(data[d] == false) {
+            opt.innerHTML = anterior + " Não houve";
+        }
+        else {
+            opt.innerHTML = anterior + ": " + data[d];
+        }
         opt_data.appendChild(opt);
     }
 }

@@ -233,13 +233,14 @@ class distribuicao_graduacao:
 
         total_pref = sum(qtds_pref)
         return {
-            "Percentual de preferencias atendidas": str(math.trunc((total_pref/(len(self.docentes)*5))*10000)/100) + "%",
-            "Percentual de aulas que eram preferidas": str(math.trunc((total_pref/len(self.disciplinas))*10000)/100) + "%",
-            "Percentual de preferencias de peso 5 atendidas": str(math.trunc((qtds_pref[4]/len(self.docentes))*10000)/100) + "%",
-            "Percentual de preferencias de peso 4 atendidas": str(math.trunc((qtds_pref[3]/len(self.docentes))*10000)/100) + "%",
-            "Percentual de preferencias de peso 3 atendidas": str(math.trunc((qtds_pref[2]/len(self.docentes))*10000)/100) + "%",
-            "Média de créditos": math.trunc(media_creditos*100)/100,
-            "Desvio padrão": math.trunc(desvio_padrao*100)/100
+            "3 - Média de créditos": math.trunc(media_creditos*100)/100,
+            "4 - Desvio padrão": math.trunc(desvio_padrao*100)/100,
+            "5 - Percentual de preferencias atendidas": str(math.trunc((total_pref/(len(self.docentes)*5))*10000)/100) + "%",
+            "6 - Percentual de aulas que eram preferidas": str(math.trunc((total_pref/len(self.disciplinas))*10000)/100) + "%",
+            "7 - Percentual de preferencias de peso 5 atendidas": str(math.trunc((qtds_pref[4]/len(self.docentes))*10000)/100) + "%",
+            "8 - Percentual de preferencias de peso 4 atendidas": str(math.trunc((qtds_pref[3]/len(self.docentes))*10000)/100) + "%",
+            "9 - Percentual de preferencias de peso 3 atendidas": str(math.trunc((qtds_pref[2]/len(self.docentes))*10000)/100) + "%",
+
         } 
     def truncate(number, decimals=0):
         factor = 10.0 ** decimals
@@ -306,8 +307,8 @@ class distribuicao_graduacao:
             self.restricao_horario_23_18 = r["horario"]
             resultado = self.calcula(disciplinas, docentes, r["prioridade"])
             if resultado:
-                resultado["Houve prioridade:"] = r["prioridade"]
-                resultado["Houve restrição de horario:"] = r["horario"]
+                resultado["1 - Houve prioridade:"] = r["prioridade"]
+                resultado["2 - Houve restrição de horario:"] = r["horario"]
                 return resultado      
         
         return False
