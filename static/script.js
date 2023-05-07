@@ -232,12 +232,15 @@ function preenche_tabela_preferencias(data, tabela){
         for(let j=0; j<disciplinas_dados.length; j++){
             let cell = body.rows[j].cells[i]
             let cod_turma = string_cod_turma(disciplinas_dados[j]);
-
-            cell.innerHTML = cod_turma;
-            cell.style.backgroundColor = "red";
+            let code_splited = cod_turma.split('_')
+            let HTML_interno = code_splited[0] + "</br>" + code_splited[1];
+            cell.innerHTML = HTML_interno;
 
             if(Object.keys(data[i]["preferencia"]).includes(cod_turma)){
-                cell.style.backgroundColor = "green";
+                cell.classList.add("presente")
+            }
+            else{
+                cell.classList.add("ausente")
             }
         }
     }

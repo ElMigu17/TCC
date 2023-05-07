@@ -1,5 +1,4 @@
 html{
-
     font-size: 12px;
     font-family: sans-serif;
 }
@@ -206,7 +205,7 @@ html{
 
 
 .conflito_horario{
-    background-color: red;
+    background-color: #F5C2C7;
 }
 
 table, th, td {   
@@ -260,6 +259,19 @@ table, th, td {
     table{
         margin-bottom: 10px;
     }
+
+    thead{
+        td{
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+    }
+    .cell-preference {
+        font-size: 12px;
+        width: 139px;
+        text-align: center;         
+    }
 }
 
 td > p {
@@ -267,14 +279,8 @@ td > p {
 }
 
 .ausente{
-    background-color: red;
+    background-color: #F5C2C7;
 }
 .presente{
-    background-color: green;
-}
-
-.cell-preference {
-    font-size: 9px;
-    width: 139px;
-    text-align: center;          
+    background-color: #D1E7DD;
 }
