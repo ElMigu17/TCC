@@ -7,7 +7,6 @@ import sass
 import os
 
 app = Flask(__name__)
-dist_grad = distribuicao_graduacao()
 arr_man = array_manipulator()
 
 
@@ -48,6 +47,7 @@ def enviar_file(request, file_name, tipo_arquivo):
 
 @app.route('/solver/<tipo_arquivo>', methods=['POST'])
 def solver(tipo_arquivo):
+    dist_grad = distribuicao_graduacao()
     if tipo_arquivo == 'csv':
         leitor = leitor_csv()
         leitor.main("data/docentes_csv.csv", "data/ultimo_semestre.csv", "data/disciplinas_prox.csv", "data/preferencias.csv")
