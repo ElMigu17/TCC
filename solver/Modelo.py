@@ -149,8 +149,8 @@ class distribuicao_graduacao:
         return pref_disc
 
     def opt_horarios(self):
-        aux_restricao_horario_23_18 = not self.restricao_horario_23_18
-        aux_restricao_horario_turnos = not self.restricao_horario_turnos
+        aux_restricao_horario_23_18 = self.restricao_horario_23_18
+        aux_restricao_horario_turnos = self.restricao_horario_turnos
         self.restricao_horario_23_18 = True
         self.restricao_horario_turnos = True
 
@@ -231,17 +231,13 @@ class distribuicao_graduacao:
         print('Variancia de créditos: ', variancia)
         print('Desvio padrão de créditos: ', desvio_padrao)
 
-
-
-        am = array_manipulator()
-        am.save_as_json(self.docentes, True)  
         total_pref = sum(qtds_pref)
         return {
             "Percentual de preferencias atendidas": str(math.trunc((total_pref/(len(self.docentes)*5))*10000)/100) + "%",
             "Percentual de aulas que eram preferidas": str(math.trunc((total_pref/len(self.disciplinas))*10000)/100) + "%",
-            "Percentual de preferencias de nível 5 atendidas": str(math.trunc((qtds_pref[4]/len(self.docentes))*10000)/100) + "%",
-            "Percentual de preferencias de nível 4 atendidas": str(math.trunc((qtds_pref[3]/len(self.docentes))*10000)/100) + "%",
-            "Percentual de preferencias de nível 3 atendidas": str(math.trunc((qtds_pref[2]/len(self.docentes))*10000)/100) + "%",
+            "Percentual de preferencias de peso 5 atendidas": str(math.trunc((qtds_pref[4]/len(self.docentes))*10000)/100) + "%",
+            "Percentual de preferencias de peso 4 atendidas": str(math.trunc((qtds_pref[3]/len(self.docentes))*10000)/100) + "%",
+            "Percentual de preferencias de peso 3 atendidas": str(math.trunc((qtds_pref[2]/len(self.docentes))*10000)/100) + "%",
             "Média de créditos": math.trunc(media_creditos*100)/100,
             "Desvio padrão": math.trunc(desvio_padrao*100)/100
         } 
@@ -250,7 +246,7 @@ class distribuicao_graduacao:
         return math.trunc(number * factor) / factor
     
     def verifica_solucao(self):
-        retorno = ''
+        retorno = False
         solver = cp_model.CpSolver()
         #solver.parameters.log_search_progress = True
 
@@ -274,7 +270,7 @@ class distribuicao_graduacao:
         print('  - wall time: %f s' % solver.WallTime())
         return retorno
                 
-    def calcula(self, disciplinas, docentes):
+    def calcula(self, disciplinas, docentes, com_prioridade):
         print("Resolvendo")
         am = array_manipulator()
         
@@ -287,7 +283,8 @@ class distribuicao_graduacao:
         self.res_limites_creditos()
         self.res_um_doc_por_dis()
         self.res_horario()
-        self.res_prioridade()
+        if com_prioridade:
+            self.res_prioridade()
         
         soma_opt = self.opt_interesse()
         soma_opt += (self.opt_horarios() * self.peso_infracao_horario)
@@ -296,6 +293,28 @@ class distribuicao_graduacao:
         self.modelo.Maximize(soma_opt)
 
         return self.verifica_solucao()
+    
+    def main(self, disciplinas, docentes):
+        restircoes_confgs = [
+            {"prioridade": True, "horario": True},
+            {"prioridade": False, "horario": True},
+            {"prioridade": False, "horario": False},
+        ]
+
+        for r in restircoes_confgs:
+            self.restricao_horario_turnos = r["horario"]
+            self.restricao_horario_23_18 = r["horario"]
+            resultado = self.calcula(disciplinas, docentes, r["prioridade"])
+            if resultado:
+                resultado["Houve prioridade:"] = r["prioridade"]
+                resultado["Houve restrição de horario:"] = r["horario"]
+                return resultado      
+        
+        return False
+        
+
+
+
 
 def main():
     dg = distribuicao_graduacao()

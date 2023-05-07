@@ -68,9 +68,9 @@ def solver(tipo_arquivo):
     with open('data/disciplinas.json', "r") as file:
         disciplinas = json.load(file)
 
-    dados_solucao = dist_grad.calcula(disciplinas, docentes)
+    dados_solucao = dist_grad.main(disciplinas, docentes)
 
-    if dados_solucao != '':
+    if dados_solucao:
         with open('data/resultado.json', "w") as file:
             json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
         with open('data/dados_solucao.json', "w") as file:
