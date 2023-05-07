@@ -376,9 +376,26 @@ function select_docente(docente){
     mostra_disciplinas_docente(docente.target.value);
 }
 
+function adiciona_listeners_nos_botoes_arquivo(){
+    var botoes_selecao_arquivo = document.getElementsByClassName('botao-selecao-arquivo')
+
+    function seleciona_arquivo(event){
+        let file_name = event.explicitOriginalTarget.value.split("\\");
+        file_name = file_name[file_name.length-1];
+        
+        event.explicitOriginalTarget.nextElementSibling.innerHTML = file_name;
+    }
+
+    for(let i=0; i<botoes_selecao_arquivo.length; i++){
+        botoes_selecao_arquivo[i].addEventListener('change',seleciona_arquivo,false);
+
+    }
+}
+
 $(document).ready(function() {
     cria_tabela();
     verifica_existencia_arquivo();
+    adiciona_listeners_nos_botoes_arquivo();
 
     document.getElementById("nome_docentes").addEventListener("change", select_docente)
     config_enviar_files();

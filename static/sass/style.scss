@@ -66,6 +66,14 @@ html{
     .download-label {
         margin-bottom: 5px;
     }
+    .label-input-file{
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        label{
+            margin-right: 10px;
+        }
+    }
 
 }
 .pos_painel_arquivos{

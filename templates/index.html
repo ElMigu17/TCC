@@ -27,22 +27,28 @@
                         <h3>Enviar arquivo do tipo json com os dados:</h3>
 
                         <p class="label-file">Disciplinas:</p>
-                        <label for="disciplinas" class="label-selecao-arquivo botao">Selecionar arquivo</label><br>
-                        <input type="file" 
-                        id="disciplinas" 
-                        class="botao-selecao-arquivo"
-                        name="disciplinas" 
-                        accept=".json"><br><br>
+                        <div class="label-input-file">
+                            <label for="disciplinas" class="label-selecao-arquivo botao">Selecionar arquivo</label>
+                            <input type="file" 
+                            id="disciplinas" 
+                            class="botao-selecao-arquivo"
+                            name="disciplinas" 
+                            accept=".json">
+                            <div>Arquivo selecionado</div>
+                        </div>
 
                         <p class="label-file">Docentes:</p>
-                        <label for="docentes" class="label-selecao-arquivo botao">Selecionar arquivo</label><br>
-                        <input 
-                        type="file" 
-                        id="docentes" 
-                        class="botao-selecao-arquivo"
-                        name="docentes" 
-                        placeholder="Escolher"
-                        accept=".json"><br><br>
+                        <div class="label-input-file">
+                            <label for="docentes" class="label-selecao-arquivo botao">Selecionar arquivo</label>
+                            <input 
+                            type="file" 
+                            id="docentes" 
+                            class="botao-selecao-arquivo"
+                            name="docentes" 
+                            placeholder="Escolher" 
+                            accept=".json">
+                            <div>Arquivo selecionado</div>
+                        </div>
 
                         <div class="botoes-de-solucao">
                             <input type="submit" value="Enviar arquivos" class="botao">
@@ -57,20 +63,32 @@
                         <h3>Enviar arquivo do tipo csv com os dados:</h3>
 
                         <p class="label-file">Docentes no próximo semestre:</p>
-                        <label for="docentes_csv" class="botao">Selecionar arquivo</label><br>
-                        <input type="file" id="docentes_csv" name="docentes_csv" class="botao-selecao-arquivo"><br><br>
+                        <div class="label-input-file">
+                            <label for="docentes_csv" class="botao">Selecionar arquivo</label>
+                            <input type="file" id="docentes_csv" name="docentes_csv" class="botao-selecao-arquivo"  accept=".csv">
+                            <div>Arquivo selecionado</div>
+                        </div>
 
                         <p class="label-file">Ultimo semestre:</p>
-                        <label for="ultimo_semestre" class="botao">Selecionar arquivo</label><br>
-                        <input type="file" id="ultimo_semestre" name="ultimo_semestre" class="botao-selecao-arquivo"><br><br>
+                        <div class="label-input-file">
+                            <label for="ultimo_semestre" class="botao">Selecionar arquivo</label>
+                            <input type="file" id="ultimo_semestre" name="ultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
+                            <div>Arquivo selecionado</div>
+                        </div>
 
                         <p class="label-file">Disciplinas no próximo semestre:</p>
-                        <label for="disciplinas_prox" class="botao">Selecionar arquivo</label><br>
-                        <input type="file" id="disciplinas_prox" name="disciplinas_prox" class="botao-selecao-arquivo"><br><br>
+                        <div class="label-input-file">
+                            <label for="disciplinas_prox" class="botao">Selecionar arquivo</label>
+                            <input type="file" id="disciplinas_prox" name="disciplinas_prox" class="botao-selecao-arquivo"  accept=".csv">
+                            <div>Arquivo selecionado</div>
+                        </div>
 
                         <p class="label-file">Preferencias:</p>
-                        <label for="preferencias" class="botao">Selecionar arquivo</label><br>
-                        <input type="file" id="preferencias" name="preferencias" class="botao-selecao-arquivo"><br><br>
+                        <div class="label-input-file">
+                            <label for="preferencias" class="botao">Selecionar arquivo</label>
+                            <input type="file" id="preferencias" name="preferencias" class="botao-selecao-arquivo"  accept=".csv">
+                            <div>Arquivo selecionado</div>
+                        </div>
 
                         <div class="botoes-de-solucao">
                             <input type="submit" value="Enviar arquivos" class="botao">

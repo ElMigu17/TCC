@@ -128,7 +128,6 @@ def Download_File(tipo_arquivo):
     PATH='data/resultado.' + tipo_arquivo
     return send_file(PATH,as_attachment=True, download_name=("distribuicao_prox_semestre." + tipo_arquivo))
 
-
 def converter_scss():
     sass.compile(dirname=('static/sass', 'static/css'), output_style='compressed')
 
