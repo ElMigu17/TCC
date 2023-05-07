@@ -209,6 +209,7 @@ function preenche_tabela_preferencias(data, tabela){
     let body = tabela.createTBody();
 
     for(let i=0; i<data.length; i++){
+        row_head.insertCell(i).innerHTML = formata_nome(data[i]["nome"]);
         if(data[i]["disciplinas_dados"].length > qtd_rows){
             qtd_rows = data[i]["disciplinas_dados"].length
         }
@@ -224,20 +225,13 @@ function preenche_tabela_preferencias(data, tabela){
         }
     }
 
-    console.log(data)
-    for(let i=0; i<data.length; i++){
-        row_head.insertCell(i).innerHTML = formata_nome(data[i]["nome"]);
-    }
-
     for(let i=0; i<data.length; i++){
         
         let disciplinas_dados = data[i]["disciplinas_dados"];
-        console.log(disciplinas_dados.length)
 
         for(let j=0; j<disciplinas_dados.length; j++){
             let cell = body.rows[j].cells[i]
             let cod_turma = string_cod_turma(disciplinas_dados[j]);
-            console.log(i,j,cod_turma);
 
             cell.innerHTML = cod_turma;
             cell.style.backgroundColor = "red";
