@@ -9,6 +9,22 @@ import os
 app = Flask(__name__)
 arr_man = array_manipulator()
 
+preferencia_head_csv = "Peso,1,2,3,4,5"
+doscentes_head_csv = "SIAPE,Nome,Redução"
+disciplinas_head_csv = "Disciplina,Local,Tipo,Tempo,Período,Dia,Horário,Turma,Vagas Normais,Vagas Reservadas para Calouros,Vagas para Matrícula Especial,Total Vagas Normais,Total Vagas Reservadas para Calouros,Total Vagas para Matrícula Especial,Docente,SIAPE"
+
+nome_arquivo_head_csv = {
+    'docentes_csv': doscentes_head_csv,
+    'ultimo_semestre': disciplinas_head_csv,
+    'disciplinas_prox': disciplinas_head_csv,
+    'preferencias': preferencia_head_csv
+}
+
+item_arquivo_json = {
+    'disciplinas': 'codigo',
+    'docentes': 'nome'
+}
+
 
 @app.route('/', methods=['GET'])
 def index():
@@ -17,16 +33,17 @@ def index():
 
 @app.route('/enviar/<tipo_arquivo>', methods=['POST'])
 def enviar(tipo_arquivo):
+    arquivos_com_erro = []
     if tipo_arquivo == 'csv':
-        enviar_file(request, 'docentes_csv', 'csv')
-        enviar_file(request, 'ultimo_semestre', 'csv')
-        enviar_file(request, 'disciplinas_prox', 'csv')
-        enviar_file(request, 'preferencias', 'csv')
+        arquivos_com_erro.append('\n1 - ' + enviar_file(request, 'docentes_csv', 'csv'))
+        arquivos_com_erro.append('\n2 - ' + enviar_file(request, 'ultimo_semestre', 'csv'))
+        arquivos_com_erro.append('\n3 - ' + enviar_file(request, 'disciplinas_prox', 'csv'))
+        arquivos_com_erro.append('\n4 - ' + enviar_file(request, 'preferencias', 'csv'))
     else:
-        enviar_file(request, 'disciplinas', 'json')
-        enviar_file(request, 'docentes', 'json')
-   
-    return "a"
+        arquivos_com_erro.append('\n1 - ' + enviar_file(request, 'disciplinas', 'json'))
+        arquivos_com_erro.append('\n2 - ' + enviar_file(request, 'docentes', 'json'))
+    arquivos_com_erro = (a for a in arquivos_com_erro if 'null' not in a)
+    return arquivos_com_erro
 
 def enviar_file(request, file_name, tipo_arquivo):
     if file_name in request.files:
@@ -34,16 +51,21 @@ def enviar_file(request, file_name, tipo_arquivo):
         data = file_out.read().decode('utf8')
 
         if data == '':
-            return "empty_file"
+            return 'null'
         
         if tipo_arquivo == 'json':
             json_object = json.loads(data)
-            with open('data/' + file_name + '.json', 'w') as file:
-                json.dump(json_object, file)
 
+            if item_arquivo_json[file_name] in json_object[0]:
+                with open('data/' + file_name + '.json', 'w') as file:
+                    json.dump(json_object, file)
+                return 'null'
         else:
-            with open('data/' + file_name + '.csv', 'w') as file:
-                file.write(data)
+            if data.split("\n")[0] == nome_arquivo_head_csv[file_name]:
+                with open('data/' + file_name + '.csv', 'w') as file:
+                    file.write(data)
+                return 'null'
+        return file_name
 
 @app.route('/solver/<tipo_arquivo>', methods=['POST'])
 def solver(tipo_arquivo):
@@ -71,7 +93,7 @@ def solver(tipo_arquivo):
     dados_solucao = dist_grad.main(disciplinas, docentes)
 
     if dados_solucao:
-        with open('data/resultado.json', "w") as file:
+        with open('data/solucao.json', "w") as file:
             json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
         with open('data/dados_solucao.json', "w") as file:
             json.dump(dados_solucao, file)
@@ -82,14 +104,14 @@ def solver(tipo_arquivo):
 @app.route('/docentes-info')
 def docentes_info():
     try:
-        with open('data/resultado.json', 'r') as file:
+        with open('data/solucao.json', 'r') as file:
             docentes = json.load(file)
         with open('data/dados_solucao.json', 'r') as file:
             dados_solucao = json.load(file)
         with open('data/disciplinas.json', 'r') as file:
             disciplinas = json.load(file)
     except:
-        return "Arquivo disciplina e/ou o resultado da otimização não estão presentes"
+        return "Arquivo de disciplina e/ou o solucao da otimização não estão presentes"
 
     dic_obj = arr_man.dict_to_obj(disciplinas)
     dict_cod_turma = arr_man.dict_cod_turma(dic_obj)
@@ -113,27 +135,27 @@ def files_existence(tipo_arquivo):
     for ex in existencia:
         existencia[ex] = os.path.exists("data/" + ex + "." + tipo_arquivo)
 
-    existencia["resultado"] = os.path.exists("data/resultado.json")
+    existencia["solucao"] = os.path.exists("data/solucao.json")
 
     return existencia
 
 @app.route('/download/<tipo_arquivo>')
 def Download_File(tipo_arquivo):
-    if not os.path.exists("data/resultado.json"):
+    if not os.path.exists("data/solucao.json"):
         return "Arquivo de otimização não encontrado"
     
     if tipo_arquivo == "csv":
-        generate_resultado_csv()
+        gerar_solucao_csv()
 
-    PATH='data/resultado.' + tipo_arquivo
+    PATH='data/solucao.' + tipo_arquivo
     return send_file(PATH,as_attachment=True, download_name=("distribuicao_prox_semestre." + tipo_arquivo))
 
 def converter_scss():
     sass.compile(dirname=('static/sass', 'static/css'), output_style='compressed')
 
-def generate_resultado_csv():
-    with open("data/resultado.json", 'r') as file:
-        resultado_json = json.load(file)
+def gerar_solucao_csv():
+    with open("data/solucao.json", 'r') as file:
+        solucao_json = json.load(file)
     with open("data/disciplinas_prox.csv", 'r') as file:
         Dados_Gerais = file.read()
     dados_output = ""
@@ -144,9 +166,9 @@ def generate_resultado_csv():
 
     def find_doc(cod_turma):
         i = 0
-        while i < len(resultado_json):
-            if cod_turma in resultado_json[i]["disciplinas"]:
-                return resultado_json[i]["nome"]
+        while i < len(solucao_json):
+            if cod_turma in solucao_json[i]["disciplinas"]:
+                return solucao_json[i]["nome"]
             i += 1
         raise ValueError("Não foi encontrado professor que ministra essa disciplina")
 
@@ -174,7 +196,7 @@ def generate_resultado_csv():
         dados_output = dados_output[:-1]
         dados_output += "\n"
 
-    with open('data/resultado.csv', 'w') as file:
+    with open('data/solucao.csv', 'w') as file:
         file.write(dados_output)
 
 if __name__ == '__main__':

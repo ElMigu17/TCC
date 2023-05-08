@@ -248,7 +248,7 @@ function preenche_tabela_preferencias(data, tabela){
 function cria_tabela(){
     let tabela = document.getElementById("horario");
 
-    const semana = ["", "segunda", "terça", "quarta", "quinta", "sexta", "sabado"]
+    const semana = ["", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sabado"]
     let head = tabela.createTHead();
     let row = head.insertRow(0);
     
@@ -281,6 +281,7 @@ function config_enviar_files(){
             contentType: false,
 
             success: function(response) {
+                alert("Há erro no conteudo do(s) arquivo(os): " + response)
                 verifica_existencia_arquivo();
             },
             error: function(xhr, status, error) {
@@ -374,7 +375,7 @@ function verifica_existencia_arquivo(){
                 let arquivos = document.getElementById("presenca-de-arquivo").getElementsByClassName("json")[0].children;
                 atualiza_situacao_arquivos(response["disciplinas"], arquivos[0]);
                 atualiza_situacao_arquivos(response["docentes"], arquivos[1]);
-                atualiza_situacao_arquivos(response["resultado"], arquivos[2]);
+                atualiza_situacao_arquivos(response["solucao"], arquivos[2]);
             }
             else{
                 let arquivos = document.getElementById("presenca-de-arquivo").getElementsByClassName("csv")[0].children;
@@ -382,7 +383,7 @@ function verifica_existencia_arquivo(){
                 atualiza_situacao_arquivos(response["ultimo_semestre"], arquivos[1]);
                 atualiza_situacao_arquivos(response["disciplinas_prox"], arquivos[2]);
                 atualiza_situacao_arquivos(response["preferencias"], arquivos[3]);
-                atualiza_situacao_arquivos(response["resultado"], arquivos[4]);
+                atualiza_situacao_arquivos(response["solucao"], arquivos[4]);
             }
 
         },
@@ -409,6 +410,7 @@ function adiciona_listeners_nos_botoes_arquivo(){
 
     for(let i=0; i<botoes_selecao_arquivo.length; i++){
         botoes_selecao_arquivo[i].addEventListener('change',seleciona_arquivo,false);
+        botoes_selecao_arquivo[i].dispatchEvent(new Event('change'));
 
     }
 }
