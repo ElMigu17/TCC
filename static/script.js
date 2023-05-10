@@ -7,6 +7,18 @@ def_display_na_classe("json", "flex");
 document.getElementById("toggle").checked = false;
 document.getElementById("mostra_conflito").checked = false;
 
+function arquivo_emcima(elemento){
+    elemento.style.backgroundColor = "#B2B2B2";
+}
+
+function arquivo_nao_emcima(elemento){
+    elemento.style.backgroundColor = "#D2D2D2";
+}
+
+function arquivo_caiu(event){
+    console.log(event)
+}
+
 function def_display_na_classe(classe, meu_display){
     elementos_csv = document.getElementsByClassName(classe);
     for(let i=0; i<elementos_csv.length; i++){
@@ -272,6 +284,7 @@ function config_enviar_files(){
     $('#envioArquivos').submit(function(e) {
         e.preventDefault(); 
         let data = new FormData($(this)[0]); 
+        console.log(data)
 
         $.ajax({
             type: "POST",
@@ -281,7 +294,7 @@ function config_enviar_files(){
             contentType: false,
 
             success: function(response) {
-                alert("Há erro no conteudo do(s) arquivo(os): " + response)
+                if(response.length > 0) alert("Há erro no conteudo do(s) arquivo(os): " + response)
                 verifica_existencia_arquivo();
             },
             error: function(xhr, status, error) {
@@ -380,10 +393,12 @@ function verifica_existencia_arquivo(){
             else{
                 let arquivos = document.getElementById("presenca-de-arquivo").getElementsByClassName("csv")[0].children;
                 atualiza_situacao_arquivos(response["docentes_csv"], arquivos[0]);
-                atualiza_situacao_arquivos(response["ultimo_semestre"], arquivos[1]);
-                atualiza_situacao_arquivos(response["disciplinas_prox"], arquivos[2]);
-                atualiza_situacao_arquivos(response["preferencias"], arquivos[3]);
-                atualiza_situacao_arquivos(response["solucao"], arquivos[4]);
+                atualiza_situacao_arquivos(response["disciplinas_prox"], arquivos[1]);
+                atualiza_situacao_arquivos(response["preferencias"], arquivos[2]);
+                atualiza_situacao_arquivos(response["ultimo_semestre"], arquivos[3]);
+                atualiza_situacao_arquivos(response["penultimo_semestre"], arquivos[4]);
+                atualiza_situacao_arquivos(response["antipenultimo_semestre"], arquivos[5]);
+                atualiza_situacao_arquivos(response["solucao"], arquivos[6]);
             }
 
         },

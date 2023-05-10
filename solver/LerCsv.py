@@ -82,6 +82,68 @@ class leitor_csv:
             True, 
             prox_disciplina['turmas']))
 
+    def disciplinas_lecionadas_anteriormente(self, caminho_arquivo):
+        Dados_Gerais = ""
+        with open(caminho_arquivo, 'r') as file:
+            Dados_Gerais = file.read()
+        Dados_Gerais = Dados_Gerais.split("\n")
+        Dados_Gerais = list(map(lambda d: d.split(","),Dados_Gerais))
+        if not Dados_Gerais[0][0].isdigit():
+            Dados_Gerais.pop(0)
+
+        aux_disciplina = {}
+        id_i = 0      
+        index = 0
+            
+        def cria_prox_disciplina(i):
+            dado = Dados_Gerais[i]
+            aux_disciplina = {}
+            aux_disciplina['disciplina'] = dado[0]
+            aux_disciplina['docente'] = dado[14]
+            aux_disciplina['turmas'] = [dado[7]]
+            i += 1
+            while i < len(Dados_Gerais) and len(Dados_Gerais[i]) >2 and Dados_Gerais[i][0] == '':
+                aux_disciplina['turmas'].append(Dados_Gerais[i][7])
+                i += 1
+
+            return aux_disciplina, i
+        
+        prox_disciplina, index = cria_prox_disciplina(0)
+        while len(Dados_Gerais) > index and len(Dados_Gerais[index]) > 2:
+            aux_disciplina, index = cria_prox_disciplina(index)
+            if(aux_disciplina["disciplina"] == prox_disciplina["disciplina"] and 
+               aux_disciplina["turmas"] == prox_disciplina["turmas"]):
+                aux_disciplina = {}
+                continue
+            
+            else:
+                docente_alvo = None
+                i = 0
+                while docente_alvo == None and i < len(self.docentes):
+                    if prox_disciplina["docente"] in self.docentes:
+                        docente_alvo = prox_disciplina["docente"]
+                        print("ACHOU")
+                    i+=1
+                if docente_alvo == None:
+                    raise ValueError("Não foi encontrado professor que ministra essa disciplina")
+
+                    
+                self.disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
+                    prox_disciplina['qtd_creditos'],
+                    prox_disciplina['horarios'], 
+                    True, 
+                    prox_disciplina['turmas']))
+                prox_disciplina = aux_disciplina
+                aux_disciplina = {}
+                id_i += 1
+
+
+        self.disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
+            prox_disciplina['qtd_creditos'],
+            prox_disciplina['horarios'], 
+            True, 
+            prox_disciplina['turmas']))
+
     def importa_dados_profs(self, caminho_arquivo):
         doscentes_dados = ""
         with open(caminho_arquivo, 'r') as file:
@@ -145,11 +207,21 @@ class leitor_csv:
                 j += 1
             i += 1
 
-    def main(self, dados_profs, dados_passado, dados_disciplinas, preferencias):
+    def main(self, 
+             dados_profs,
+             dados_passado, 
+             dados_disciplinas, 
+             preferencias, 
+             ultimo_semestre, 
+             penultimo_semestre, 
+             antipenultimo_semestre):
         self.importa_dados_profs(dados_profs)
         self.importa_dados_passados(dados_passado)
         self.importa_dados_disciplinas(dados_disciplinas)
         self.importa_preferencias(preferencias)
+        self.disciplinas_lecionadas_anteriormente(ultimo_semestre, 'disc_per_1')
+        self.disciplinas_lecionadas_anteriormente(penultimo_semestre, 'disc_per_2')
+        self.disciplinas_lecionadas_anteriormente(antipenultimo_semestre, 'disc_per_3')
         am = array_manipulator()
         am.save_as_json(self.disciplinas)
         am.save_as_json(self.docentes)

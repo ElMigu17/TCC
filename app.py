@@ -11,20 +11,21 @@ arr_man = array_manipulator()
 
 preferencia_head_csv = "Peso,1,2,3,4,5"
 doscentes_head_csv = "SIAPE,Nome,Redução"
-disciplinas_head_csv = "Disciplina,Local,Tipo,Tempo,Período,Dia,Horário,Turma,Vagas Normais,Vagas Reservadas para Calouros,Vagas para Matrícula Especial,Total Vagas Normais,Total Vagas Reservadas para Calouros,Total Vagas para Matrícula Especial,Docente,SIAPE"
+disciplinas_head_csv = "Disciplina,Local,Tipo,Tempo,Período,Dia,Horário,Turma,Vagas Normais,Vagas Reservadas para Calouros,Vagas para Matrícula Especial,Total Vagas Normais,Total Vagas Reservadas para Calouros,Total Vagas para Matrícula Especial,Docente,"
 
 nome_arquivo_head_csv = {
     'docentes_csv': doscentes_head_csv,
-    'ultimo_semestre': disciplinas_head_csv,
     'disciplinas_prox': disciplinas_head_csv,
-    'preferencias': preferencia_head_csv
+    'preferencias': preferencia_head_csv,
+    'ultimo_semestre': disciplinas_head_csv,
+    'penultimo_semestre': disciplinas_head_csv,
+    'antipenultimo_semestre': disciplinas_head_csv
 }
 
 item_arquivo_json = {
     'disciplinas': 'codigo',
     'docentes': 'nome'
 }
-
 
 @app.route('/', methods=['GET'])
 def index():
@@ -34,19 +35,25 @@ def index():
 @app.route('/enviar/<tipo_arquivo>', methods=['POST'])
 def enviar(tipo_arquivo):
     arquivos_com_erro = []
+    print(request)
+    print(request.files)
     if tipo_arquivo == 'csv':
         arquivos_com_erro.append('\n1 - ' + enviar_file(request, 'docentes_csv', 'csv'))
-        arquivos_com_erro.append('\n2 - ' + enviar_file(request, 'ultimo_semestre', 'csv'))
-        arquivos_com_erro.append('\n3 - ' + enviar_file(request, 'disciplinas_prox', 'csv'))
-        arquivos_com_erro.append('\n4 - ' + enviar_file(request, 'preferencias', 'csv'))
+        arquivos_com_erro.append('\n2 - ' + enviar_file(request, 'disciplinas_prox', 'csv'))
+        arquivos_com_erro.append('\n3 - ' + enviar_file(request, 'preferencias', 'csv'))
+        arquivos_com_erro.append('\n4 - ' + enviar_file(request, 'ultimo_semestre', 'csv'))
+        arquivos_com_erro.append('\n5 - ' + enviar_file(request, 'penultimo_semestre', 'csv'))
+        arquivos_com_erro.append('\n6 - ' + enviar_file(request, 'antipenultimo_semestre', 'csv'))
     else:
         arquivos_com_erro.append('\n1 - ' + enviar_file(request, 'disciplinas', 'json'))
         arquivos_com_erro.append('\n2 - ' + enviar_file(request, 'docentes', 'json'))
+        
     arquivos_com_erro = (a for a in arquivos_com_erro if 'null' not in a)
     return arquivos_com_erro
 
 def enviar_file(request, file_name, tipo_arquivo):
     if file_name in request.files:
+        print(file_name)
         file_out = request.files[file_name]
         data = file_out.read().decode('utf8')
 
@@ -61,11 +68,14 @@ def enviar_file(request, file_name, tipo_arquivo):
                     json.dump(json_object, file)
                 return 'null'
         else:
+            print(data.split("\n")[0])
+            print(nome_arquivo_head_csv[file_name])
             if data.split("\n")[0] == nome_arquivo_head_csv[file_name]:
                 with open('data/' + file_name + '.csv', 'w') as file:
                     file.write(data)
                 return 'null'
         return file_name
+    return 'null'
 
 @app.route('/solver/<tipo_arquivo>', methods=['POST'])
 def solver(tipo_arquivo):

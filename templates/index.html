@@ -64,15 +64,12 @@
 
                         <p class="label-file">Docentes no próximo semestre:</p>
                         <div class="label-input-file">
-                            <label for="docentes_csv" class="botao">Selecionar arquivo</label>
+                            <label for="docentes_csv" class="botao" 
+                                ondragover="arquivo_emcima(this)" 
+                                ondragleave="arquivo_nao_emcima(this)"
+                                ondrop="arquivo_caiu(event)"
+                                >Selecionar arquivo</label>
                             <input type="file" id="docentes_csv" name="docentes_csv" class="botao-selecao-arquivo"  accept=".csv">
-                            <div>Arquivo selecionado</div>
-                        </div>
-
-                        <p class="label-file">Ultimo semestre:</p>
-                        <div class="label-input-file">
-                            <label for="ultimo_semestre" class="botao">Selecionar arquivo</label>
-                            <input type="file" id="ultimo_semestre" name="ultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
                             <div>Arquivo selecionado</div>
                         </div>
 
@@ -87,6 +84,27 @@
                         <div class="label-input-file">
                             <label for="preferencias" class="botao">Selecionar arquivo</label>
                             <input type="file" id="preferencias" name="preferencias" class="botao-selecao-arquivo"  accept=".csv">
+                            <div>Arquivo selecionado</div>
+                        </div>
+
+                        <p class="label-file">Ultimo semestre:</p>
+                        <div class="label-input-file">
+                            <label for="ultimo_semestre" class="botao">Selecionar arquivo</label>
+                            <input type="file" id="ultimo_semestre" name="ultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
+                            <div>Arquivo selecionado</div>
+                        </div>
+
+                        <p class="label-file">Penultimo semestre:</p>
+                        <div class="label-input-file">
+                            <label for="penultimo_semestre" class="botao">Selecionar arquivo</label>
+                            <input type="file" id="penultimo_semestre" name="penultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
+                            <div>Arquivo selecionado</div>
+                        </div>
+
+                        <p class="label-file">Antipenultimo semestre:</p>
+                        <div class="label-input-file">
+                            <label for="antipenultimo_semestre" class="botao">Selecionar arquivo</label>
+                            <input type="file" id="antipenultimo_semestre" name="antipenultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
                             <div>Arquivo selecionado</div>
                         </div>
 
@@ -106,14 +124,16 @@
                     <div class="json">
                         <div class="ausente"><img src="static/X.svg" />Arquivo de disciplina ausente</div>
                         <div class="ausente"><img src="static/X.svg" />Arquivo de docentes ausente</div>
-                        <div class="ausente"><img src="static/X.svg" />Arquivo de resultado ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de solução ausente</div>
                     </div>
                     <div class="csv">
                         <div class="ausente"><img src="static/X.svg" />Arquivo de professores ausente</div>
-                        <div class="ausente"><img src="static/X.svg" />Arquivo de ultimo semestre ausente</div>
                         <div class="ausente"><img src="static/X.svg" />Arquivo de disciplinas no próximo semestre ausente</div>
                         <div class="ausente"><img src="static/X.svg" />Arquivo de preferencias ausente</div>
-                        <div class="ausente"><img src="static/X.svg" />Arquivo de resultado da otimização ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de ultimo semestre ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de penultimo semestre ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de antipenultimo semestre ausente</div>
+                        <div class="ausente"><img src="static/X.svg" />Arquivo de solução da otimização ausente</div>
                     </div>
                 </div>
             </div>
