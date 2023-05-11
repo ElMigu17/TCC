@@ -12,6 +12,7 @@ class leitor_csv:
         self.docentes = []
         self.siape_docente = {}
         self.disciplinas = []
+        self.docentes_not_found = {}
     
     def num_ou_zero(self, num):
         try:
@@ -55,11 +56,8 @@ class leitor_csv:
         prox_disciplina, index = cria_prox_disciplina(0)
         while len(Dados_Gerais) > index and len(Dados_Gerais[index]) > 2:
             aux_disciplina, index = cria_prox_disciplina(index)
-            print(aux_disciplina["disciplina"])
-            print(aux_disciplina["turmas"] == prox_disciplina["turmas"],aux_disciplina["turmas"], prox_disciplina["turmas"])
             if(aux_disciplina["disciplina"] == prox_disciplina["disciplina"] and 
                aux_disciplina["turmas"] == prox_disciplina["turmas"]):
-                print("aaaaaaaaaaaa")
 
                 prox_disciplina["horarios"].append(aux_disciplina["horarios"][0])
                 prox_disciplina['qtd_creditos'] += aux_disciplina['qtd_creditos']
@@ -82,8 +80,9 @@ class leitor_csv:
             True, 
             prox_disciplina['turmas']))
 
-    def disciplinas_lecionadas_anteriormente(self, caminho_arquivo):
+    def disciplinas_lecionadas_anteriormente(self, caminho_arquivo, semestre):
         Dados_Gerais = ""
+        self.docentes_not_found[semestre] = []
         with open(caminho_arquivo, 'r') as file:
             Dados_Gerais = file.read()
         Dados_Gerais = Dados_Gerais.split("\n")
@@ -94,6 +93,37 @@ class leitor_csv:
         aux_disciplina = {}
         id_i = 0      
         index = 0
+
+        def tenta_add_turma_a_docente(prox_disciplina):
+
+            docente_alvo = None
+            i = 0
+            str_disc_turma = prox_disciplina['disciplina'] + "_"
+
+            for it in prox_disciplina['turmas']:
+                str_disc_turma += it
+
+            while i < len(self.docentes):
+                if prox_disciplina["docente"] in self.docentes[i].nome:
+                    if docente_alvo != None:
+                        
+                        aux = getattr( self.docentes[docente_alvo], semestre)
+                        aux.pop()
+                        setattr( self.docentes[docente_alvo], semestre, aux)
+
+                        i = len(self.docentes)
+                        docente_alvo = None
+                    else:
+                        docente_alvo = i
+                        
+                        aux = getattr( self.docentes[i], semestre)
+                        aux.append(str_disc_turma)
+                        setattr( self.docentes[i], semestre, aux)
+                        
+                i+=1
+
+            if docente_alvo == None:
+                self.docentes_not_found[semestre].append(str_disc_turma)
             
         def cria_prox_disciplina(i):
             dado = Dados_Gerais[i]
@@ -117,32 +147,14 @@ class leitor_csv:
                 continue
             
             else:
-                docente_alvo = None
-                i = 0
-                while docente_alvo == None and i < len(self.docentes):
-                    if prox_disciplina["docente"] in self.docentes:
-                        docente_alvo = prox_disciplina["docente"]
-                        print("ACHOU")
-                    i+=1
-                if docente_alvo == None:
-                    raise ValueError("Não foi encontrado professor que ministra essa disciplina")
-
-                    
-                self.disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
-                    prox_disciplina['qtd_creditos'],
-                    prox_disciplina['horarios'], 
-                    True, 
-                    prox_disciplina['turmas']))
+                tenta_add_turma_a_docente(prox_disciplina)
                 prox_disciplina = aux_disciplina
                 aux_disciplina = {}
                 id_i += 1
+        
+        tenta_add_turma_a_docente(prox_disciplina)
 
 
-        self.disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
-            prox_disciplina['qtd_creditos'],
-            prox_disciplina['horarios'], 
-            True, 
-            prox_disciplina['turmas']))
 
     def importa_dados_profs(self, caminho_arquivo):
         doscentes_dados = ""
@@ -177,7 +189,7 @@ class leitor_csv:
         if not ultimo_semestre[0][0].isdigit():
             ultimo_semestre.pop(0)
             
-        while ultimo_semestre[index][0].isdigit() and len(ultimo_semestre) > index:
+        while len(ultimo_semestre) > index and ultimo_semestre[index][0].isdigit():
             row = ultimo_semestre[index]
 
             num_disc = self.num_ou_zero(row[3])
@@ -209,8 +221,8 @@ class leitor_csv:
 
     def main(self, 
              dados_profs,
-             dados_passado, 
              dados_disciplinas, 
+             dados_passado, 
              preferencias, 
              ultimo_semestre, 
              penultimo_semestre, 
@@ -222,9 +234,8 @@ class leitor_csv:
         self.disciplinas_lecionadas_anteriormente(ultimo_semestre, 'disc_per_1')
         self.disciplinas_lecionadas_anteriormente(penultimo_semestre, 'disc_per_2')
         self.disciplinas_lecionadas_anteriormente(antipenultimo_semestre, 'disc_per_3')
-        am = array_manipulator()
-        am.save_as_json(self.disciplinas)
-        am.save_as_json(self.docentes)
+
+        #print(self.docentes_not_found)
 
 
 if __name__ == '__main__':

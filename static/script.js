@@ -284,7 +284,6 @@ function config_enviar_files(){
     $('#envioArquivos').submit(function(e) {
         e.preventDefault(); 
         let data = new FormData($(this)[0]); 
-        console.log(data)
 
         $.ajax({
             type: "POST",
@@ -337,6 +336,22 @@ function solver(){
             if(response == 'No solution found'){
                 alert("Não foi encontrada solução")
             }
+            else if(typeof response == typeof Object()){
+                console.log(response)
+                response_str = ''
+                for(let i in response){
+                    response_str += '\n' + i;
+                    turmas_str = '';
+                    for(let j in response[i]){
+                        turmas_str += response[i][j] + ", "
+                    }
+
+                    response_str += ': ' + turmas_str
+                }
+
+                console.log(response_str)
+                alert("Na hora de fazer a leitura dos arquivos csv, algumas materias antigas aparentemente não foram lecionadas por docentes que lecionarão na solução ou houve uma confusão por haverem nomes indistinguiveis (como Fulano, Fulano de Tal e Fulano Silva). Isso pode ter ocorrido devido a um erro na escrita do nome do doscente. Com isso, segue a lista para futura verificação: \n" + response_str)
+            } 
             else{
                 get_dados_solucao();
                 verifica_existencia_arquivo();
@@ -394,11 +409,12 @@ function verifica_existencia_arquivo(){
                 let arquivos = document.getElementById("presenca-de-arquivo").getElementsByClassName("csv")[0].children;
                 atualiza_situacao_arquivos(response["docentes_csv"], arquivos[0]);
                 atualiza_situacao_arquivos(response["disciplinas_prox"], arquivos[1]);
-                atualiza_situacao_arquivos(response["preferencias"], arquivos[2]);
-                atualiza_situacao_arquivos(response["ultimo_semestre"], arquivos[3]);
-                atualiza_situacao_arquivos(response["penultimo_semestre"], arquivos[4]);
-                atualiza_situacao_arquivos(response["antipenultimo_semestre"], arquivos[5]);
-                atualiza_situacao_arquivos(response["solucao"], arquivos[6]);
+                atualiza_situacao_arquivos(response["qtd_fim_ultimo_semestre"], arquivos[2]);
+                atualiza_situacao_arquivos(response["preferencias"], arquivos[3]);
+                atualiza_situacao_arquivos(response["ultimo_semestre"], arquivos[4]);
+                atualiza_situacao_arquivos(response["penultimo_semestre"], arquivos[5]);
+                atualiza_situacao_arquivos(response["antipenultimo_semestre"], arquivos[6]);
+                atualiza_situacao_arquivos(response["solucao"], arquivos[7]);
             }
 
         },
