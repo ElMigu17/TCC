@@ -28,7 +28,10 @@
 
                         <p class="label-file">Disciplinas:</p>
                         <div class="label-input-file">
-                            <label for="disciplinas" class="label-selecao-arquivo botao">Selecionar arquivo</label>
+                            <label for="disciplinas" class="label-selecao-arquivo botao"
+                            ondragover="arquivo_emcima(event)" 
+                            ondragleave="arquivo_nao_emcima(this)"
+                            ondrop="arquivo_caiu(event)">Selecionar arquivo</label>
                             <input type="file" 
                             id="disciplinas" 
                             class="botao-selecao-arquivo"
@@ -39,7 +42,10 @@
 
                         <p class="label-file">Docentes:</p>
                         <div class="label-input-file">
-                            <label for="docentes" class="label-selecao-arquivo botao">Selecionar arquivo</label>
+                            <label for="docentes" class="label-selecao-arquivo botao"
+                            ondragover="arquivo_emcima(event)" 
+                            ondragleave="arquivo_nao_emcima(this)"
+                            ondrop="arquivo_caiu(event)">Selecionar arquivo</label>
                             <input 
                             type="file" 
                             id="docentes" 
@@ -64,8 +70,9 @@
 
                         <p class="label-file">Docentes no próximo semestre:</p>
                         <div class="label-input-file">
-                            <label for="docentes_csv" class="botao" 
-                                ondragover="arquivo_emcima(this)" 
+                            <label for="docentes_csv" 
+                                class="botao" 
+                                ondragover="arquivo_emcima(event)" 
                                 ondragleave="arquivo_nao_emcima(this)"
                                 ondrop="arquivo_caiu(event)"
                                 >Selecionar arquivo</label>
@@ -75,42 +82,72 @@
 
                         <p class="label-file">Disciplinas no próximo semestre:</p>
                         <div class="label-input-file">
-                            <label for="disciplinas_prox" class="botao">Selecionar arquivo</label>
+                            <label for="disciplinas_prox" 
+                            class="botao"
+                            ondragover="arquivo_emcima(event)" 
+                            ondragleave="arquivo_nao_emcima(this)"
+                            ondrop="arquivo_caiu(event)"
+                            >Selecionar arquivo</label>
                             <input type="file" id="disciplinas_prox" name="disciplinas_prox" class="botao-selecao-arquivo"  accept=".csv">
                             <div>Arquivo selecionado</div>
                         </div>
 
                         <p class="label-file">Quantidades do final do ultimo semestre:</p>
                         <div class="label-input-file">
-                            <label for="ultimo_semestre" class="botao">Selecionar arquivo</label>
-                            <input type="file" id="ultimo_semestre" name="qtd_fim_ultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
+                            <label for="qtd_fim_ultimo_semestre" 
+                                class="botao"
+                                ondragover="arquivo_emcima(event)" 
+                                ondragleave="arquivo_nao_emcima(this)"
+                                ondrop="arquivo_caiu(event)"
+                                >Selecionar arquivo</label>
+                            <input type="file" id="qtd_fim_ultimo_semestre" name="qtd_fim_ultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
                             <div>Arquivo selecionado</div>
                         </div>
 
                         <p class="label-file">Preferencias:</p>
                         <div class="label-input-file">
-                            <label for="preferencias" class="botao">Selecionar arquivo</label>
+                            <label for="preferencias" 
+                                class="botao"
+                                ondragover="arquivo_emcima(event)" 
+                                ondragleave="arquivo_nao_emcima(this)"
+                                ondrop="arquivo_caiu(event)"
+                                >Selecionar arquivo</label>
                             <input type="file" id="preferencias" name="preferencias" class="botao-selecao-arquivo"  accept=".csv">
                             <div>Arquivo selecionado</div>
                         </div>
 
                         <p class="label-file">Ultimo semestre:</p>
                         <div class="label-input-file">
-                            <label for="ultimo_semestre" class="botao">Selecionar arquivo</label>
+                            <label for="ultimo_semestre" 
+                                class="botao"
+                                ondragover="arquivo_emcima(event)" 
+                                ondragleave="arquivo_nao_emcima(this)"
+                                ondrop="arquivo_caiu(event)"
+                                >Selecionar arquivo</label>
                             <input type="file" id="ultimo_semestre" name="ultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
                             <div>Arquivo selecionado</div>
                         </div>
 
                         <p class="label-file">Penultimo semestre:</p>
                         <div class="label-input-file">
-                            <label for="penultimo_semestre" class="botao">Selecionar arquivo</label>
+                            <label for="penultimo_semestre" 
+                                class="botao"
+                                ondragover="arquivo_emcima(event)" 
+                                ondragleave="arquivo_nao_emcima(this)"
+                                ondrop="arquivo_caiu(event)"
+                                >Selecionar arquivo</label>
                             <input type="file" id="penultimo_semestre" name="penultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
                             <div>Arquivo selecionado</div>
                         </div>
 
                         <p class="label-file">Antipenultimo semestre:</p>
                         <div class="label-input-file">
-                            <label for="antipenultimo_semestre" class="botao">Selecionar arquivo</label>
+                            <label for="antipenultimo_semestre" 
+                                class="botao"
+                                ondragover="arquivo_emcima(event)" 
+                                ondragleave="arquivo_nao_emcima(this)"
+                                ondrop="arquivo_caiu(event)"
+                                >Selecionar arquivo</label>
                             <input type="file" id="antipenultimo_semestre" name="antipenultimo_semestre" class="botao-selecao-arquivo"  accept=".csv">
                             <div>Arquivo selecionado</div>
                         </div>

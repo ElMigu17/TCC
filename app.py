@@ -12,7 +12,7 @@ arr_man = array_manipulator()
 preferencia_head_csv = "Peso,1,2,3,4,5"
 doscentes_head_csv = "SIAPE,Nome,Redução"
 disciplinas_head_csv = "Disciplina,Local,Tipo,Tempo,Período,Dia,Horário,Turma,Vagas Normais,Vagas Reservadas para Calouros,Vagas para Matrícula Especial,Total Vagas Normais,Total Vagas Reservadas para Calouros,Total Vagas para Matrícula Especial,Docente,"
-qtd_fim_ultimo_semestre = "SIAPE,Professores ,Créditos,Número de Disciplinas,nº estudantes fim de período"
+qtd_fim_ultimo_semestre = "SIAPE,Professores,Créditos,Número de Disciplinas,nº estudantes fim de período"
 
 nome_arquivo_head_csv = {
     'docentes_csv': doscentes_head_csv,
@@ -41,12 +41,6 @@ def enviar(tipo_arquivo):
         i = 1
         for key in nome_arquivo_head_csv:
             arquivos_com_erro.append('\n' + str(i) + ' - ' + enviar_file(request, key, 'csv'))
-            # arquivos_com_erro.append('\n2 - ' + enviar_file(request, 'disciplinas_prox', 'csv'))
-            # arquivos_com_erro.append('\n3 - ' + enviar_file(request, 'preferencias', 'csv'))
-            # arquivos_com_erro.append('\n3 - ' + enviar_file(request, 'preferencias', 'csv'))'qtd_fim_ultimo_semestre'
-            # arquivos_com_erro.append('\n4 - ' + enviar_file(request, 'ultimo_semestre', 'csv'))
-            # arquivos_com_erro.append('\n5 - ' + enviar_file(request, 'penultimo_semestre', 'csv'))
-            # arquivos_com_erro.append('\n6 - ' + enviar_file(request, 'antipenultimo_semestre', 'csv'))
             i += 1
     else:
         arquivos_com_erro.append('\n1 - ' + enviar_file(request, 'disciplinas', 'json'))
@@ -54,6 +48,15 @@ def enviar(tipo_arquivo):
         
     arquivos_com_erro = (a for a in arquivos_com_erro if 'null' not in a)
     return arquivos_com_erro
+
+@app.route('/enviar_um_arquivo/<tipo_arquivo>', methods=['POST'])
+def enviar_um_arquivo(tipo_arquivo):
+    filename = [a for a in request.files.keys()]
+    a = enviar_file(request, filename[0], tipo_arquivo)
+
+    if a == 'null':
+        a = []
+    return a
 
 def enviar_file(request, file_name, tipo_arquivo):
     if file_name in request.files:

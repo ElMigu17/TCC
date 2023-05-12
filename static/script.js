@@ -7,8 +7,9 @@ def_display_na_classe("json", "flex");
 document.getElementById("toggle").checked = false;
 document.getElementById("mostra_conflito").checked = false;
 
-function arquivo_emcima(elemento){
-    elemento.style.backgroundColor = "#B2B2B2";
+function arquivo_emcima(event){
+    event.preventDefault();
+    event.target.style.backgroundColor = "#B2B2B2";
 }
 
 function arquivo_nao_emcima(elemento){
@@ -16,7 +17,40 @@ function arquivo_nao_emcima(elemento){
 }
 
 function arquivo_caiu(event){
-    console.log(event)
+    event.target.style.backgroundColor = "#D2D2D2";
+    event.preventDefault();
+    let file = event.dataTransfer.items[0].getAsFile()
+    let id = event.originalTarget.nextElementSibling.id
+    let data = new FormData(); 
+    data.append(id, file, id)
+
+
+    all_file_name = file.name.split(".")
+    if(all_file_name[all_file_name.length - 1] != tipo_arquivo){
+        return 0;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "enviar_um_arquivo/" + tipo_arquivo,
+        data:  data,
+        processData: false,
+        contentType: false,
+
+        success: function(response) {
+            verifica_existencia_arquivo();
+            if(response.length > 0){
+                alert("Há erro no conteudo do arquivo enviado: " + file.name)
+            }
+            else{ 
+                event.originalTarget.nextElementSibling.nextElementSibling.innerHTML = file.name
+
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+        }
+    })
 }
 
 function def_display_na_classe(classe, meu_display){
@@ -337,7 +371,6 @@ function solver(){
                 alert("Não foi encontrada solução")
             }
             else if(typeof response == typeof Object()){
-                console.log(response)
                 response_str = ''
                 for(let i in response){
                     response_str += '\n' + i;
@@ -349,7 +382,6 @@ function solver(){
                     response_str += ': ' + turmas_str
                 }
 
-                console.log(response_str)
                 alert("Na hora de fazer a leitura dos arquivos csv, algumas materias antigas aparentemente não foram lecionadas por docentes que lecionarão na solução ou houve uma confusão por haverem nomes indistinguiveis (como Fulano, Fulano de Tal e Fulano Silva). Isso pode ter ocorrido devido a um erro na escrita do nome do doscente. Com isso, segue a lista para futura verificação: \n" + response_str)
             } 
             else{
