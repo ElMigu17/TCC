@@ -21,15 +21,20 @@ function arquivo_caiu(event){
     event.preventDefault();
     let file = event.dataTransfer.items[0].getAsFile()
     let id = event.originalTarget.nextElementSibling.id
+    let div_nome_arquivo = event.originalTarget.nextElementSibling.nextElementSibling;
     let data = new FormData(); 
     data.append(id, file, id)
-
 
     all_file_name = file.name.split(".")
     if(all_file_name[all_file_name.length - 1] != tipo_arquivo){
         return 0;
     }
 
+    enviar_um_arquivo(data, file, div_nome_arquivo);
+
+}
+
+function enviar_um_arquivo(data, file, div_nome_arquivo){
     $.ajax({
         type: "POST",
         url: "enviar_um_arquivo/" + tipo_arquivo,
@@ -41,14 +46,16 @@ function arquivo_caiu(event){
             verifica_existencia_arquivo();
             if(response.length > 0){
                 alert("Há erro no conteudo do arquivo enviado: " + file.name)
+                div_nome_arquivo.innerHTML = "Arquivo enviado"
             }
             else{ 
-                event.originalTarget.nextElementSibling.nextElementSibling.innerHTML = file.name
+                div_nome_arquivo.innerHTML = file.name
 
             }
         },
         error: function(xhr, status, error) {
             console.error(error);
+            console.error(file.name);
         }
     })
 }
@@ -314,29 +321,6 @@ function cria_tabela(){
     get_dados_solucao();
 }
 
-function config_enviar_files(){
-    $('#envioArquivos').submit(function(e) {
-        e.preventDefault(); 
-        let data = new FormData($(this)[0]); 
-
-        $.ajax({
-            type: "POST",
-            url: "enviar/" + tipo_arquivo,
-            data:  data,
-            processData: false,
-            contentType: false,
-
-            success: function(response) {
-                if(response.length > 0) alert("Há erro no conteudo do(s) arquivo(os): " + response)
-                verifica_existencia_arquivo();
-            },
-            error: function(xhr, status, error) {
-                console.error(error);
-            }
-        });
-    });
-}
-
 function mostra_analise_solucao(data){
     let opt_data = document.getElementById("dados_solucao");
     let titulo = opt_data.getElementsByTagName("h3")[0];
@@ -407,7 +391,7 @@ function get_dados_solucao(){
             organiza_tabelas_preferencias();
         },
         error: function(xhr, status, error) {
-            window.alert(xhr.responseText)
+            console.log(xhr.responseText)
         }
     });
 }
@@ -465,15 +449,20 @@ function adiciona_listeners_nos_botoes_arquivo(){
     var botoes_selecao_arquivo = document.getElementsByClassName('botao-selecao-arquivo')
 
     function seleciona_arquivo(event){
-        let file_name = event.explicitOriginalTarget.value.split("\\");
-        file_name = file_name[file_name.length-1];
         
-        event.explicitOriginalTarget.nextElementSibling.innerHTML = file_name;
+        let div_nome_arquivo = event.explicitOriginalTarget.nextElementSibling;        
+        let id = event.explicitOriginalTarget.id
+        let form_data = new FormData($('#envioArquivos')[0]);
+        let file = form_data.get(id);
+        let data = new FormData(); 
+        data.append(id, file, id)
+
+        enviar_um_arquivo(data, file, div_nome_arquivo)
+        
     }
 
     for(let i=0; i<botoes_selecao_arquivo.length; i++){
         botoes_selecao_arquivo[i].addEventListener('change',seleciona_arquivo,false);
-        botoes_selecao_arquivo[i].dispatchEvent(new Event('change'));
 
     }
 }
@@ -484,7 +473,6 @@ $(document).ready(function() {
     adiciona_listeners_nos_botoes_arquivo();
 
     document.getElementById("nome_docentes").addEventListener("change", select_docente)
-    config_enviar_files();
     setTimeout(() => materias_liberadas(), 2400);
 
 });
