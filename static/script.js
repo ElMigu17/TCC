@@ -194,7 +194,8 @@ function verifica_existencia_arquivo(){
 }
 
     //Solução
-function solver(){
+function solver(e){
+    e.preventDefault();
     $.ajax({
         type: "POST",
         url: "solver/" + tipo_arquivo,
