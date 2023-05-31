@@ -1,4 +1,6 @@
 from solver.Estruturas_de_Dados import disciplina, docente, array_manipulator
+import json
+import pdb
 
 class leitor_csv:
     def __init__(self) -> None:
@@ -14,6 +16,8 @@ class leitor_csv:
         self.siape_docente = {}
         self.disciplinas = []
         self.docentes_not_found = {}
+        self.riscos = []
+        self.nome_arquivo = ""
 
     def cria_prox_disciplina(self, Dados_Gerais, i):
         def descobre_qtd_creditos(horarios):
@@ -23,10 +27,39 @@ class leitor_csv:
                 return 2
             else:
                 return 3
+            
+        def pega_docente_nome(nome, i):
+            if "\"" in nome:
+                
+                self.riscos.append({"arquivo": self.nome_arquivo, 
+                                    "linha": i,
+                                    "alerta": "quebra de linha"})
+                i += 1
+                
+                while "\"" not in Dados_Gerais[i]:
+                    nome += Dados_Gerais[i]
+                    i += 1
+                nome = nome.replace("\n", " ")
 
+                i += 1
+                
+            if " para " in nome:
+                self.riscos.append({"arquivo": self.nome_arquivo, 
+                                    "linha": i,
+                                    "alerta": "presenca da palavra 'para'"})
+                
+            if " mudar " in nome or "Mudar " in nome:
+                self.riscos.append({"arquivo": self.nome_arquivo, 
+                                    "linha": i,
+                                    "alerta": "presenca da palavra 'mudar'"})
+            
+            
+            return nome, i
+        
         dado = Dados_Gerais[i]
         try:
-            dia_semana = self.get_pos_weekday([dado[5]])
+            dia_semana = self.get_pos_weekday(dado[5])
+            docente_nome, i = pega_docente_nome(dado[14], i)
         except Exception as e:
             raise ValueError(e.args[0] + "na linha " + str(i))  
         
@@ -35,7 +68,7 @@ class leitor_csv:
         aux_disciplina['horarios'] = [{ "dia_semana": dia_semana, "hora_inicio": horarios[0], "hora_fim": horarios[1]}]
         aux_disciplina['disciplina'] = dado[0]
         aux_disciplina['turmas'] = [dado[7]]
-        aux_disciplina['docente'] = dado[14]
+        aux_disciplina['docente'] = docente_nome
         aux_disciplina['qtd_creditos'] = descobre_qtd_creditos(horarios)
         i += 1
         while i < len(Dados_Gerais) and len(Dados_Gerais[i]) >2 and Dados_Gerais[i][0] == '':
@@ -46,7 +79,7 @@ class leitor_csv:
 
     def get_pos_weekday(self, this_dia):
         for d in self.dia_num:
-            if d in this_dia[0]:
+            if d in this_dia:
                 return self.dia_num[d]
         raise ValueError("Erro na nomeação do dia da semana")
     
@@ -121,7 +154,11 @@ class leitor_csv:
             while i < len(self.docentes):
                 if prox_disciplina["docente"] in self.docentes[i].nome:
                     if docente_alvo != None:
-                        
+
+                        self.riscos.append({"arquivo": self.nome_arquivo, 
+                                            "linha": i,
+                                            "alerta": "O nome " + prox_disciplina["docente"] + " se encaixa em dois docentes"})
+                        print(prox_disciplina["docente"])
                         aux = getattr( self.docentes[docente_alvo], semestre)
                         aux.pop()
                         setattr( self.docentes[docente_alvo], semestre, aux)
@@ -138,6 +175,10 @@ class leitor_csv:
                 i+=1
 
             if docente_alvo == None:
+                self.riscos.append({"arquivo": self.nome_arquivo, 
+                                    "linha": i,
+                                    "alerta": "Dentre os docentes que ministrarao aula no proximo semestre, nao encontrou-se os seguintes docentes que ministraram as seguintes disciplinas",
+                                    "doscente_disciplina": prox_disciplina["docente"] + " - " + str_disc_turma })
                 self.docentes_not_found[semestre].append(str_disc_turma)
             
 
@@ -155,7 +196,6 @@ class leitor_csv:
                 prox_disciplina = aux_disciplina
                 aux_disciplina = {}
                 id_i += 1
-        print(self.disciplinas)
         tenta_add_turma_a_docente(prox_disciplina)
 
 
@@ -253,16 +293,46 @@ class leitor_csv:
         for i in range(len(funcoes)):
             try:
                 if len(parametros[i]) == 2:
+                    self.nome_arquivo = parametros[i][0]
                     funcoes[i](parametros[i][0], parametros[i][1])
                 else:
+                    self.nome_arquivo = parametros[i]
                     funcoes[i](parametros[i])
             except ValueError as e:
                 raise ValueError( e.args[0] + " \nNa função: "+ funcoes[i].__name__ + " \nCom parametros: " + parametros[i])
             except Exception as e:
                 raise Exception(e)
 
+        riscos_limpos = []
+
+        while 0 < len(self.riscos):
+            riscos_limpos.append({"alerta": self.riscos[0]["alerta"], 
+                            "ocorrencia" : [self.riscos[0]["arquivo"] + " linha " + str(self.riscos[0]["linha"])]})
+            if "doscente_disciplina" in self.riscos[0]:
+                riscos_limpos[-1]["doscente_disciplina"] = [self.riscos[0]["doscente_disciplina"]]
+            self.riscos.pop(0)
+            j = 0
+            while j < len(self.riscos):
+                if(riscos_limpos[-1]["alerta"] == self.riscos[j]["alerta"]):
+                    riscos_limpos[-1]["ocorrencia"].append(self.riscos[0]["arquivo"] + " linha " + str(self.riscos[0]["linha"]))
+
+                    if "doscente_disciplina" in self.riscos[j]:
+                        riscos_limpos[-1]["doscente_disciplina"].append(self.riscos[j]["doscente_disciplina"])
+                    self.riscos.pop(j)
+                else:
+                    j += 1
+
+        with open('data/erros.json', 'w') as file:
+            json.dump(riscos_limpos, file)
 
 
 if __name__ == '__main__':
     leitor = leitor_csv()
-    leitor.main("Modelos/Doscentes.csv", "Modelos/2022-2.csv", "Modelos/Dados_Gerais.csv", "Modelos/Preferencias2.0.csv")
+    leitor.main("data/docentes_csv.csv", 
+                "data/disciplinas_prox.csv", 
+                "data/qtd_fim_ultimo_semestre.csv",
+                "data/preferencias.csv",
+                "data/ultimo_semestre.csv",
+                "data/penultimo_semestre.csv", 
+                "data/antipenultimo_semestre.csv"
+                )
