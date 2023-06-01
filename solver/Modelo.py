@@ -13,10 +13,19 @@ class distribuicao_graduacao:
         self.limite_superior_reduzido = 12
 
         self.peso_infracao_horario = 0.5
-        self.peso_desempate = 1
+        self.peso_desempate = 1000
 
         self.restricao_horario_turnos = False
         self.restricao_horario_23_18 = False   
+        self.fixados = []
+
+        self.peso_pra_posicao = {
+            1000: 4,
+            500: 3,
+            200: 2,
+            50: 1,
+            30: 0
+        }
 
     def leitura_arquivo(self, name):
         am = array_manipulator()
@@ -37,12 +46,16 @@ class distribuicao_graduacao:
         self.distribui_disciplinas_com_prioridade()
         self.distribui_restante()
 
-    def matriz_de_correlacao(self) -> dict:
+    def matriz_de_correlacao(self) -> None:
         self.atribuicao = {}
         for doc in self.docentes:
+            doc.disciplinas = []
             for dis in self.disciplinas:
                 self.atribuicao[(doc.pos, dis.pos)] = self.modelo.NewBoolVar('atribuicao_doc%idis%i' % (doc.pos, dis.pos)) 
     
+    def fixacao_pos_opt(self):
+        for fixado in self.fixados:
+            self.modelo.AddExactlyOne(self.atribuicao[fixado])
 ## Restrições
 
     def res_um_doc_por_dis(self):
@@ -175,8 +188,7 @@ class distribuicao_graduacao:
             tam = len(h_doc_list)
 
             for i in range(len(h_doc_list)):
-                opt_formula += (self.atribuicao[(h_doc_list[i].pos, h)] * (tam-1))
-
+                opt_formula += (self.atribuicao[(h_doc_list[i].pos, h)] * (tam-i))
         return opt_formula
 
 
@@ -204,7 +216,9 @@ class distribuicao_graduacao:
                     dis_anterior = dis.pos
 
                     if dis.string_cod_turma() in doc.preferencia:
-                        qtds_pref[doc.preferencia[dis.string_cod_turma()]-1] += 1
+                        
+                        pos_pref = self.peso_pra_posicao[doc.preferencia[dis.string_cod_turma()]]
+                        qtds_pref[pos_pref] += 1
 
                         add = "que possui preferencia " + str(doc.preferencia[dis.string_cod_turma()])
                         qtd_preferencias_peso += doc.preferencia[dis.string_cod_turma()]
@@ -249,7 +263,6 @@ class distribuicao_graduacao:
     def verifica_solucao(self):
         retorno = False
         solver = cp_model.CpSolver()
-        #solver.parameters.log_search_progress = True
 
         status = solver.Solve(self.modelo)
 
@@ -271,7 +284,7 @@ class distribuicao_graduacao:
         print('  - wall time: %f s' % solver.WallTime())
         return retorno
                 
-    def calcula(self, disciplinas, docentes, com_prioridade):
+    def soluciona(self, disciplinas, docentes, com_prioridade):
         print("Resolvendo")
         am = array_manipulator()
         
@@ -279,7 +292,8 @@ class distribuicao_graduacao:
         self.docentes = am.dict_to_obj(docentes) 
 
         self.modelo = cp_model.CpModel()
-        self.matriz_de_correlacao()      
+        self.matriz_de_correlacao()  
+        self.fixacao_pos_opt()    
 
         self.res_limites_creditos()
         self.res_um_doc_por_dis()
@@ -298,30 +312,48 @@ class distribuicao_graduacao:
     def main(self, disciplinas, docentes):
         restircoes_confgs = [
             {"prioridade": True, "horario": True},
-            {"prioridade": False, "horario": True},
+            {"prioridade": True, "horario": False},
             {"prioridade": False, "horario": False},
         ]
 
         for r in restircoes_confgs:
             self.restricao_horario_turnos = r["horario"]
             self.restricao_horario_23_18 = r["horario"]
-            resultado = self.calcula(disciplinas, docentes, r["prioridade"])
+            resultado = self.soluciona(disciplinas, docentes, r["prioridade"])
             if resultado:
+
+                self.fixa_top_ranking(disciplinas, docentes, r)
+                
+                resultado = self.soluciona(disciplinas, docentes, r["prioridade"])
                 resultado["1 - Houve prioridade:"] = r["prioridade"]
                 resultado["2 - Houve restrição de horario:"] = r["horario"]
                 return resultado      
         
         return False
-        
 
+    def fixa_top_ranking(self, disciplinas, docentes, r):
+        desrespeitos = self.lista_restricao_capeoes_de_ranking()
 
+        for desrespeito in desrespeitos:
+            self.fixados.append(desrespeito)
+            resultado = self.soluciona(disciplinas, docentes, r["prioridade"])
+
+            if resultado == False:
+                self.fixados.pop()
+
+    def lista_restricao_capeoes_de_ranking(self):
+        campeos = []
+        for dis in self.disciplinas:
+            if dis.pos in self.ranking:
+                campeos.append((self.ranking[dis.pos][0].pos, dis.pos))
+        return campeos
 
 
 def main():
     dg = distribuicao_graduacao()
     disciplinas = dg.leitura_arquivo("disciplina2022-2")
     docente = dg.leitura_arquivo("docente2022-2")
-    dg.calcula(disciplinas, docente)
+    dg.soluciona(disciplinas, docente)
 
 if __name__ == '__main__':
     main()
