@@ -451,7 +451,6 @@ function preenche_tabela_preferencias(data, tabela){
 
 function materias_serao_foram_liberadas(periodo_3, periodo_2, periodo_1, id){
     let disciplinas_liberadas = []
-
     for (i in dados_solucao) {
         let disciplinas_seguidas = structuredClone(dados_solucao[i][periodo_1])
         for (j in disciplinas_seguidas){
@@ -468,6 +467,7 @@ function materias_serao_foram_liberadas(periodo_3, periodo_2, periodo_1, id){
 
         disciplinas_liberadas = disciplinas_liberadas.concat(disciplinas_seguidas)
     }
+    document.getElementById(id).innerHTML = ""
     let lista = document.getElementById(id)
 
     for(i in disciplinas_liberadas){
