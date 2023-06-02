@@ -1,6 +1,7 @@
 import json
 from datetime import date
 import os
+import unidecode
 
 class disciplina:
     def __init__(self, *args) -> None:
@@ -44,6 +45,7 @@ class docente:
     def init_pequeno(self, pos:int, nome: str, siape: int, reducao: int):
         self.pos = pos
         self.nome = nome
+        self.id_de_nome = self.gera_id_de_nome(nome)
         self.siape = siape
         self.num_disc_anterior = 0
         self.estudantes_fim_anterior = 0
@@ -56,6 +58,12 @@ class docente:
         self.disc_per_2 = []
         self.disc_per_3 = []
     
+    def gera_id_de_nome(self, nome):
+        nome = unidecode.unidecode(nome)
+        nome = nome.replace(" ", "_")
+        nome = nome.lower()
+        return nome
+
     def dict_to_docente(self, my_dict):
         for key in my_dict:
             setattr(self, key, my_dict[key])

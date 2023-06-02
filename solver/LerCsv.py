@@ -1,16 +1,15 @@
 from solver.Estruturas_de_Dados import disciplina, docente, array_manipulator
 import json
-import pdb
+import unidecode
 
 class leitor_csv:
     def __init__(self) -> None:
-        self.dia_num = {"Seg" : 1,
-            "Ter" : 2,
-            "Qua" : 3,
-            "Qui" : 4,
-            "Sex" : 5,
-            "Sáb" : 6,
-            "Sab" : 6}
+        self.dia_num = {"seg" : 1,
+            "ter" : 2,
+            "qua" : 3,
+            "qui" : 4,
+            "sex" : 5,
+            "sab" : 6}
 
         self.docentes = []
         self.siape_docente = {}
@@ -18,6 +17,7 @@ class leitor_csv:
         self.docentes_not_found = {}
         self.riscos = []
         self.nome_arquivo = ""
+        self.traducao_de_peso = { 1: 30, 2: 50, 3: 200, 4: 500, 5: 1000 }
 
     def cria_prox_disciplina(self, Dados_Gerais, i):
         def descobre_qtd_creditos(horarios):
@@ -78,6 +78,8 @@ class leitor_csv:
         return aux_disciplina, i
 
     def get_pos_weekday(self, this_dia):
+        this_dia = unidecode.unidecode(this_dia)
+        this_dia = this_dia.lower()
         for d in self.dia_num:
             if d in this_dia:
                 return self.dia_num[d]
@@ -152,13 +154,12 @@ class leitor_csv:
                 str_disc_turma += it
 
             while i < len(self.docentes):
-                if prox_disciplina["docente"] in self.docentes[i].nome:
+                if self.docentes[i].gera_id_de_nome(prox_disciplina["docente"]) in self.docentes[i].id_de_nome:                    
                     if docente_alvo != None:
 
                         self.riscos.append({"arquivo": self.nome_arquivo, 
                                             "linha": i,
                                             "alerta": "O nome " + prox_disciplina["docente"] + " se encaixa em dois docentes"})
-                        print(prox_disciplina["docente"])
                         aux = getattr( self.docentes[docente_alvo], semestre)
                         aux.pop()
                         setattr( self.docentes[docente_alvo], semestre, aux)
@@ -197,8 +198,6 @@ class leitor_csv:
                 aux_disciplina = {}
                 id_i += 1
         tenta_add_turma_a_docente(prox_disciplina)
-
-
 
     def importa_dados_profs(self, caminho_arquivo):
         doscentes_dados = ""
@@ -259,7 +258,7 @@ class leitor_csv:
             j = 1
             pos_docente_atual = self.siape_docente[Preferencias[i][0]]
             while len(Preferencias[i]) > j:
-                self.docentes[pos_docente_atual].add_preferencia(j, Preferencias[i][j])
+                self.docentes[pos_docente_atual].add_preferencia(self.traducao_de_peso[j], Preferencias[i][j])
                 j += 1
             i += 1
 
@@ -299,7 +298,10 @@ class leitor_csv:
                     self.nome_arquivo = parametros[i]
                     funcoes[i](parametros[i])
             except ValueError as e:
-                raise ValueError( e.args[0] + " \nNa função: "+ funcoes[i].__name__ + " \nCom parametros: " + parametros[i])
+                params = " "
+                for p in parametros[i]:
+                    params += p + " "
+                raise ValueError( e.args[0] + " \nNa função: "+ funcoes[i].__name__ + " \nCom parametros: " + params)
             except Exception as e:
                 raise Exception(e)
 
