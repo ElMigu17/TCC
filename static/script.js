@@ -206,18 +206,23 @@ function solver(e){
                 alert("Não foi encontrada solução")
             }
             else if(typeof response == typeof Object()){
-                response_str = ''
-                for(let i in response){
-                    response_str += '\n' + i;
-                    turmas_str = '';
-                    for(let j in response[i]){
-                        turmas_str += response[i][j] + ", "
+                if("erro" in response){
+                    alert(response["erro"])
+                }
+                else{
+                    response_str = ''
+                    for(let i in response){
+                        response_str += '\n' + i;
+                        turmas_str = '';
+                        for(let j in response[i]){
+                            turmas_str += response[i][j] + ", "
+                        }
+
+                        response_str += ': ' + turmas_str
                     }
 
-                    response_str += ': ' + turmas_str
+                    alert("Na hora de fazer a leitura dos arquivos csv, algumas materias antigas aparentemente não foram lecionadas por docentes que lecionarão na solução ou houve uma confusão por haverem nomes indistinguiveis (como Fulano, Fulano de Tal e Fulano Silva). Isso pode ter ocorrido devido a um erro na escrita do nome do doscente. Com isso, segue a lista para futura verificação: \n" + response_str)
                 }
-
-                alert("Na hora de fazer a leitura dos arquivos csv, algumas materias antigas aparentemente não foram lecionadas por docentes que lecionarão na solução ou houve uma confusão por haverem nomes indistinguiveis (como Fulano, Fulano de Tal e Fulano Silva). Isso pode ter ocorrido devido a um erro na escrita do nome do doscente. Com isso, segue a lista para futura verificação: \n" + response_str)
             } 
             else{
                 get_dados_solucao();

@@ -87,7 +87,8 @@ def solver(tipo_arquivo):
     dist_grad = distribuicao_graduacao()
     if tipo_arquivo == 'csv':
         leitor = leitor_csv()
-        leitor.main("data/docentes_csv.csv", 
+        try:
+            leitor.main("data/docentes_csv.csv", 
                     "data/disciplinas_prox.csv", 
                     "data/qtd_fim_ultimo_semestre.csv",
                     "data/preferencias.csv",
@@ -95,6 +96,11 @@ def solver(tipo_arquivo):
                     "data/penultimo_semestre.csv", 
                     "data/antipenultimo_semestre.csv"
                     )
+        except ValueError as e:
+            erro_str = ""
+            for er in e.args:
+                erro_str += er
+            return {"erro": erro_str}
         
         retorno = leitor.docentes_not_found
         
