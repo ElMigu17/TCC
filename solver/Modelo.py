@@ -60,7 +60,8 @@ class distribuicao_graduacao:
 
     def res_um_doc_por_dis(self):
         for dis in self.disciplinas:
-            self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)] for doc in self.docentes)
+            self.modelo.AddExactlyOne(
+                self.atribuicao[(doc.pos, dis.pos)] for doc in self.docentes)
             
     def res_limites_creditos(self):
 
@@ -312,7 +313,7 @@ class distribuicao_graduacao:
     def main(self, disciplinas, docentes):
         restircoes_confgs = [
             {"prioridade": True, "horario": True},
-            {"prioridade": True, "horario": False},
+            {"prioridade": False, "horario": True},
             {"prioridade": False, "horario": False},
         ]
 
@@ -332,22 +333,65 @@ class distribuicao_graduacao:
         return False
 
     def fixa_top_ranking(self, disciplinas, docentes, r):
+        
+        def lista_to_str(lista):
+            str_retorno = ""
+            for item in lista:
+                if type(item) == list or type(item) == tuple:
+                    str_retorno += lista_to_str(item)
+                else:
+                    str_retorno += str(item)
+            return str_retorno
+        
         desrespeitos = self.lista_restricao_capeoes_de_ranking()
+        str_desrespeitos = lista_to_str(desrespeitos)
 
-        for desrespeito in desrespeitos:
-            self.fixados.append(desrespeito)
-            resultado = self.soluciona(disciplinas, docentes, r["prioridade"])
+        dic_lista = {}
 
-            if resultado == False:
-                self.fixados.pop()
+        while desrespeitos != [] and str_desrespeitos not in dic_lista:
+            dic_lista[str_desrespeitos] = True
+            for desrespeito in desrespeitos:
+                self.fixados.append(desrespeito)
+                resultado = self.soluciona(disciplinas, docentes, r["prioridade"])
+
+                if resultado == False:
+                    self.fixados.pop()
+            
+            desrespeitos = self.lista_restricao_capeoes_de_ranking()
+            str_desrespeitos = lista_to_str(desrespeito)
 
     def lista_restricao_capeoes_de_ranking(self):
-        campeos = []
-        for dis in self.disciplinas:
-            if dis.pos in self.ranking:
-                campeos.append((self.ranking[dis.pos][0].pos, dis.pos))
-        return campeos
+        travas = []
 
+        def acha_doc_que_leciona(lista_doc, disc_cod):
+            i = 0
+            for doc in lista_doc:
+                if disc_cod in doc.disciplinas:
+                    return i
+                i += 1            
+            return -1
+        
+        for rank in self.ranking:
+            lista_doc = self.ranking[rank]
+            disc = self.disciplinas[rank]
+            disc_code = disc.string_cod_turma()
+            pos_rank_doc = acha_doc_que_leciona(lista_doc, disc_code)
+
+            if ((disc_code in lista_doc[0].disciplinas) or
+                (pos_rank_doc == -1)):
+                continue
+                
+            pos_maior_pref = pos_rank_doc
+            i = pos_rank_doc - 1
+            while i >= 0:
+                if lista_doc[i].preferencia[disc_code] >= lista_doc[pos_maior_pref].preferencia[disc_code]:
+                    pos_maior_pref = i
+                i -= 1
+
+            if pos_maior_pref != pos_rank_doc:      
+                travas.append((lista_doc[pos_maior_pref].pos, disc.pos))
+        return travas
+            
 
 def main():
     dg = distribuicao_graduacao()
