@@ -1,5 +1,6 @@
 import json
-
+import random
+import regex as re
 # with open('comhorario_semprioridade.json', 'r') as file:
 #     comhorario = json.load(file)
 # with open('semhorario_comprioridade.json', 'r') as file:
@@ -122,11 +123,11 @@ def analisa_respeitou_ranking(solucao1):
 # print()
 # analisa_respeitou_ranking(sol_alternativa)
 # print()
-with open('solucao.json', 'r') as file:
-    sol_padrao = json.load(file)
-# compara(sol_padrao, sol_alternativa)
-analisa_respeitou_ranking(sol_padrao)
-print()
+# with open('solucao.json', 'r') as file:
+#     sol_padrao = json.load(file)
+# # compara(sol_padrao, sol_alternativa)
+# analisa_respeitou_ranking(sol_padrao)
+# print()
 # with open('analise4_repesado/h_res_com_des_repesado.json', 'r') as file:
 #     sol_alternativa = json.load(file)
 
@@ -141,3 +142,104 @@ print()
 # with open('analise2_com_des/horario_opt.json', 'r') as file:
 #     horario_res = json.load(file)
 # compara(horario_opt, horario_res)
+cod_antigo_para_novo = {}
+
+def add_traducao_cod(num_codigo):
+    if(num_codigo not in cod_antigo_para_novo.keys()):
+        random.seed(int(num_codigo))
+        novo_cod = str(random.randint(100,199))
+        
+        while novo_cod in cod_antigo_para_novo.values():
+            novo_cod = str(random.randint(100,199))
+
+        cod_antigo_para_novo[num_codigo] = novo_cod
+
+def dis_antiga(dis):
+    if("GMM" in dis):
+        cod_tur = dis.replace("GMM","").split("_")
+        add_traducao_cod(cod_tur[0])
+        turmas = re.split("([0-9]+[A-Z]+)", cod_tur[1])
+        turmas.sort()
+        while "" in turmas:
+            turmas.remove("")
+        string_turma = ""
+        for t in turmas:
+            string_turma += t
+
+        print(string_turma)
+        return "EXM" + cod_antigo_para_novo[cod_tur[0]] + "_" + string_turma
+    
+    elif("GEX" in dis):
+        cod_tur = dis.replace("GEX","").split("_")
+        add_traducao_cod(cod_tur[0])
+        return "EXM" + cod_antigo_para_novo[cod_tur[0]] + "_" + cod_tur[1]
+    
+    elif("PMA" in dis):
+        cod_tur = dis.replace("PMA","")
+        add_traducao_cod(cod_tur)
+        return "EXM" + cod_antigo_para_novo[cod_tur]
+    
+    elif("EXM" in dis):
+        cod_tur = dis.replace("EXM","").split("_")
+        if len(cod_tur) == 1:
+            return dis
+        turmas = re.split("([0-9]+[A-Z]+)", cod_tur[1])
+        turmas.sort()
+        while "" in turmas:
+            turmas.remove("")
+        string_turma = ""
+        for t in turmas:
+            string_turma += t
+
+        print(string_turma)
+        return "EXM" + cod_tur[0] + "_" + string_turma
+
+    return dis
+
+
+def main():
+    with open('docentes.json', 'r') as file:
+        docentes = json.load(file)
+        
+    with open('disciplinas.json', 'r') as file:
+        disciplinas = json.load(file)
+
+    for dis in disciplinas:
+        if "EXM" in dis["codigo"]:
+            continue
+        num_codigo = dis["codigo"].replace("GMM","")
+        add_traducao_cod(num_codigo)
+        dis["codigo"] = "EXM" + str(cod_antigo_para_novo[num_codigo])
+   
+    i = 1
+    for doc in docentes:
+        doc["nome"] = "Docente " + str(i)
+
+        periodos = ["disc_per_1", "disc_per_2", "disc_per_3"]
+
+        for periodo in periodos:
+            nova_lista = []
+            for dis in doc[periodo]:
+                nova_dis = dis_antiga(dis)
+                nova_lista.append(nova_dis)
+            doc[periodo] = nova_lista
+
+        novas_preferencias = {}
+
+        for dis in doc["preferencia"]:
+            nova_dis = dis_antiga(dis)
+            novas_preferencias[nova_dis] = doc["preferencia"][dis]
+        doc["preferencia"] = novas_preferencias
+        i += 1
+
+    with open('docentes_mascardo.json', 'w') as file:
+        json.dump(docentes, file)
+    with open('disciplinas_mascardo.json', 'w') as file:
+        json.dump(disciplinas, file)
+
+
+
+if __name__ == '__main__':
+    main()
+
+
