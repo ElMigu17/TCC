@@ -150,7 +150,7 @@ class leitor_csv:
             i = 0
             str_disc_turma = prox_disciplina['disciplina'] + "_"
 
-            for it in prox_disciplina['turmas']:
+            for it in sorted(prox_disciplina['turmas']):
                 str_disc_turma += it
 
             while i < len(self.docentes):
