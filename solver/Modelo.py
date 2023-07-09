@@ -16,7 +16,8 @@ class distribuicao_graduacao:
         self.peso_desempate = 1000
 
         self.restricao_horario_turnos = False
-        self.restricao_horario_23_18 = False   
+        self.restricao_horario_23_18 = False  
+        self.restricao_prioridade = False 
         self.fixados = []
 
         self.peso_pra_posicao = {
@@ -200,21 +201,23 @@ class distribuicao_graduacao:
         qtd_preferencias_peso = 0
         qtd_primeir_ranking_ganhador = 0
         array_creditos = []
+
+        aux_restricao_horario_23_18 = self.restricao_horario_23_18
+        aux_restricao_horario_turnos = self.restricao_horario_turnos
+        self.restricao_horario_23_18 = True
+        self.restricao_horario_turnos = True
         conflitos = self.todos_conflitos_horario()
+        self.restricao_horario_23_18 = aux_restricao_horario_23_18
+        self.restricao_horario_turnos = aux_restricao_horario_turnos
+
 
         for doc in self.docentes:
             array_creditos.append(0)
-            dis_anterior = None
 
             for dis in self.disciplinas:
                 if solver.Value(self.atribuicao[(doc.pos, dis.pos)]) == 1:
                     add = ""
 
-                    if dis_anterior != None and [dis_anterior, dis.pos] in conflitos:
-                        doc.conflitos.append(self.disciplinas[dis_anterior].string_cod_turma())
-                        doc.conflitos.append(dis.string_cod_turma())
-
-                    dis_anterior = dis.pos
 
                     if dis.string_cod_turma() in doc.preferencia:
                         
@@ -235,6 +238,13 @@ class distribuicao_graduacao:
             print("Quantidade total de creditos:", array_creditos[-1])
             print("Conflitos:", doc.conflitos)
             print()
+            for c in conflitos:
+
+                if (self.disciplinas[c[0]].string_cod_turma() in doc.disciplinas and
+                    self.disciplinas[c[1]].string_cod_turma() in doc.disciplinas):
+                    doc.conflitos.append(self.disciplinas[c[0]].string_cod_turma())
+                    doc.conflitos.append(self.disciplinas[c[1]].string_cod_turma())
+
         media_creditos = sum(array_creditos)/len(self.docentes)
         variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
         desvio_padrao = math.sqrt(variancia)
@@ -278,14 +288,13 @@ class distribuicao_graduacao:
 
         else:
             print('No solution found !')
-            
         print('\nStatistics')
         print('  - conflicts: %i' % solver.NumConflicts())
         print('  - branches : %i' % solver.NumBranches())
         print('  - wall time: %f s' % solver.WallTime())
         return retorno
                 
-    def soluciona(self, disciplinas, docentes, com_prioridade):
+    def soluciona(self, disciplinas, docentes):
         print("Resolvendo")
         am = array_manipulator()
         
@@ -299,7 +308,7 @@ class distribuicao_graduacao:
         self.res_limites_creditos()
         self.res_um_doc_por_dis()
         self.res_horario()
-        if com_prioridade:
+        if self.restricao_prioridade:
             self.res_prioridade()
         
         soma_opt = self.opt_interesse()
@@ -320,64 +329,56 @@ class distribuicao_graduacao:
         for r in restircoes_confgs:
             self.restricao_horario_turnos = r["horario"]
             self.restricao_horario_23_18 = r["horario"]
-            resultado = self.soluciona(disciplinas, docentes, r["prioridade"])
+            self.restricao_prioridade = r["prioridade"]
+            resultado = self.soluciona(disciplinas, docentes)
             if resultado:
 
-                self.fixa_top_ranking(disciplinas, docentes, r)
+                self.soluciona_com_top_ranking_fixo(disciplinas, docentes)
                 
-                resultado = self.soluciona(disciplinas, docentes, r["prioridade"])
+                resultado = self.soluciona(disciplinas, docentes)
                 resultado["1 - Houve prioridade:"] = r["prioridade"]
                 resultado["2 - Houve restrição de horario:"] = r["horario"]
                 return resultado      
         
         return False
 
-    def fixa_top_ranking(self, disciplinas, docentes, r):
-        
-        def lista_to_str(lista):
-            str_retorno = ""
-            for item in lista:
-                if type(item) == list or type(item) == tuple:
-                    str_retorno += lista_to_str(item)
-                else:
-                    str_retorno += str(item)
-            return str_retorno
-        
-        desrespeitos = self.lista_restricao_capeoes_de_ranking()
-        str_desrespeitos = lista_to_str(desrespeitos)
+    def soluciona_com_top_ranking_fixo(self, disciplinas, docentes):
 
-        dic_lista = {}
+        lista_de_infracoes_ocorridas = []
+        infracoes = self.lista_restricao_capeoes_de_ranking()
+        lista_de_infracoes_ocorridas.append([])
 
-        while desrespeitos != [] and str_desrespeitos not in dic_lista:
-            dic_lista[str_desrespeitos] = True
-            for desrespeito in desrespeitos:
-                self.fixados.append(desrespeito)
-                resultado = self.soluciona(disciplinas, docentes, r["prioridade"])
+        while infracoes not in lista_de_infracoes_ocorridas:
+            lista_de_infracoes_ocorridas.append(infracoes)
+
+            for infracao in infracoes:
+                self.fixados.append(infracao)
+                resultado = self.soluciona(disciplinas, docentes)
 
                 if resultado == False:
-                    self.fixados.pop()
+                    self.fixados.remove(infracao)
             
-            desrespeitos = self.lista_restricao_capeoes_de_ranking()
-            str_desrespeitos = lista_to_str(desrespeito)
+            infracoes = self.lista_restricao_capeoes_de_ranking()
+
+    def acha_doc_que_leciona(self, lista_doc, disc_cod):
+        i = 0
+        for doc in lista_doc:
+            if disc_cod in doc.disciplinas:
+                return i
+            i += 1            
+        return -1
 
     def lista_restricao_capeoes_de_ranking(self):
         travas = []
-
-        def acha_doc_que_leciona(lista_doc, disc_cod):
-            i = 0
-            for doc in lista_doc:
-                if disc_cod in doc.disciplinas:
-                    return i
-                i += 1            
-            return -1
         
         for rank in self.ranking:
             lista_doc = self.ranking[rank]
             disc = self.disciplinas[rank]
             disc_code = disc.string_cod_turma()
-            pos_rank_doc = acha_doc_que_leciona(lista_doc, disc_code)
+            ja_esta_no_topo = (disc_code in lista_doc[0].disciplinas)
+            pos_rank_doc = self.acha_doc_que_leciona(lista_doc, disc_code)
 
-            if ((disc_code in lista_doc[0].disciplinas) or
+            if ( ja_esta_no_topo or
                 (pos_rank_doc == -1)):
                 continue
                 
