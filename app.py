@@ -203,7 +203,7 @@ def converte_solucao_csv():
             if cod_turma in solucao_json[i]["disciplinas"]:
                 return solucao_json[i]["nome"]
             i += 1
-        raise ValueError("Não foi encontrado professor que ministra essa disciplina")
+        raise ValueError("Não foi encontrado professor que ministra a disciplina " + cod_turma)
 
     for i in range(len(Dados_Gerais)):
         dado = Dados_Gerais[i]
