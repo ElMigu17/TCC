@@ -218,7 +218,6 @@ class distribuicao_graduacao:
                 if solver.Value(self.atribuicao[(doc.pos, dis.pos)]) == 1:
                     add = ""
 
-
                     if dis.string_cod_turma() in doc.preferencia:
                         
                         pos_pref = self.peso_pra_posicao[doc.preferencia[dis.string_cod_turma()]]
@@ -232,12 +231,9 @@ class distribuicao_graduacao:
                             add += ", que era o primeiro no ranking"
                             qtd_primeir_ranking_ganhador += 1
 
-                    print('Docente', doc.pos, 'lecionara a disciplina',  dis.pos, add)
                     array_creditos[-1] += dis.qtd_creditos
                     doc.disciplinas.append(dis.string_cod_turma())
-            print("Quantidade total de creditos:", array_creditos[-1])
-            print("Conflitos:", doc.conflitos)
-            print()
+
             for c in conflitos:
 
                 if (self.disciplinas[c[0]].string_cod_turma() in doc.disciplinas and
