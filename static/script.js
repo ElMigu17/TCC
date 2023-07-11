@@ -285,10 +285,12 @@ function coloca_nome_no_select(){
 
 function alternar_mudanca_conflito(){
     mostra_conflito = !mostra_conflito;
-    nome_docente = document.getElementById("nome_docentes").selectedOptions[0].value;
+    if(document.getElementById("nome_docentes").selectedOptions[0] != undefined){
+        nome_docente = document.getElementById("nome_docentes").selectedOptions[0].value;
+        mostra_disciplinas_docente(nome_docente);
+    }
     coloca_nome_no_select();
     limapr_tabela();
-    mostra_disciplinas_docente(nome_docente);
 }
 
     //Tabela
