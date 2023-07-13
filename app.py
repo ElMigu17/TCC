@@ -153,6 +153,16 @@ def docentes_info():
 
     return {"docentes": docentes, "dados_solucao": dados_solucao}
 
+@app.route('/erros-de-leitura')
+def erros_de_leitura():
+    try:
+        with open('data/erros.json', 'r') as file:
+            incoerencias = json.load(file)
+    except:
+        return "Arquivo de erros não está presentes"
+
+    return {"incoerencias": incoerencias}
+
 @app.route('/files-existence/<tipo_arquivo>')
 def files_existence(tipo_arquivo):
     existencia = {"disciplinas": False, "docentes": False}

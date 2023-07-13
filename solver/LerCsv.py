@@ -15,7 +15,11 @@ class leitor_csv:
         self.siape_docente = {}
         self.disciplinas = []
         self.docentes_not_found = {}
-        self.riscos = []
+        self.riscos = {"quebra_de_linha" : [], 
+                       "presenca_palavra_para": [], 
+                       "presenca_palavra_mudar": [], 
+                       "docent_not_found": [], 
+                       "indistinguibilidade_de_nome": []}
         self.nome_arquivo = ""
         self.traducao_de_peso = { 1: 30, 2: 50, 3: 200, 4: 500, 5: 1000 }
 
@@ -31,9 +35,8 @@ class leitor_csv:
         def pega_docente_nome(nome, i):
             if "\"" in nome:
                 
-                self.riscos.append({"arquivo": self.nome_arquivo, 
-                                    "linha": i,
-                                    "alerta": "quebra de linha"})
+                self.riscos["quebra_de_linha"].append({"arquivo": self.nome_arquivo, 
+                                                        "linha": i})
                 i += 1
                 
                 while "\"" not in Dados_Gerais[i]:
@@ -44,14 +47,12 @@ class leitor_csv:
                 i += 1
                 
             if " para " in nome:
-                self.riscos.append({"arquivo": self.nome_arquivo, 
-                                    "linha": i,
-                                    "alerta": "presenca da palavra 'para'"})
+                self.riscos["presenca_palavra_para"].append({"arquivo": self.nome_arquivo, 
+                                                                  "linha": i})
                 
             if " mudar " in nome or "Mudar " in nome:
-                self.riscos.append({"arquivo": self.nome_arquivo, 
-                                    "linha": i,
-                                    "alerta": "presenca da palavra 'mudar'"})
+                self.riscos["presenca_palavra_mudar"].append({"arquivo": self.nome_arquivo, 
+                                                                   "linha": i})
             
             
             return nome, i
@@ -144,7 +145,7 @@ class leitor_csv:
         id_i = 0      
         index = 0
 
-        def tenta_add_turma_a_docente(prox_disciplina):
+        def tenta_add_turma_a_docente(prox_disciplina, index):
 
             docente_alvo = None
             i = 0
@@ -157,9 +158,9 @@ class leitor_csv:
                 if self.docentes[i].gera_id_de_nome(prox_disciplina["docente"]) in self.docentes[i].id_de_nome:                    
                     if docente_alvo != None:
 
-                        self.riscos.append({"arquivo": self.nome_arquivo, 
-                                            "linha": i,
-                                            "alerta": "O nome " + prox_disciplina["docente"] + " se encaixa em dois docentes"})
+                        self.riscos["indistinguibilidade_de_nome"].append({"arquivo": self.nome_arquivo, 
+                                                                           "linha": index,
+                                                                           "nome": prox_disciplina["docente"]})
                         aux = getattr( self.docentes[docente_alvo], semestre)
                         aux.pop()
                         setattr( self.docentes[docente_alvo], semestre, aux)
@@ -176,9 +177,8 @@ class leitor_csv:
                 i+=1
 
             if docente_alvo == None:
-                self.riscos.append({"arquivo": self.nome_arquivo, 
-                                    "linha": i,
-                                    "alerta": "Dentre os docentes que ministrarao aula no proximo semestre, nao encontrou-se os seguintes docentes que ministraram as seguintes disciplinas",
+                self.riscos["docent_not_found"].append({"arquivo": self.nome_arquivo, 
+                                    "linha": index,
                                     "doscente_disciplina": prox_disciplina["docente"] + " - " + str_disc_turma })
                 self.docentes_not_found[semestre].append(str_disc_turma)
             
@@ -193,11 +193,11 @@ class leitor_csv:
                 continue
             
             else:
-                tenta_add_turma_a_docente(prox_disciplina)
+                tenta_add_turma_a_docente(prox_disciplina, index)
                 prox_disciplina = aux_disciplina
                 aux_disciplina = {}
                 id_i += 1
-        tenta_add_turma_a_docente(prox_disciplina)
+        tenta_add_turma_a_docente(prox_disciplina, index)
 
     def importa_dados_profs(self, caminho_arquivo):
         doscentes_dados = ""
@@ -305,27 +305,8 @@ class leitor_csv:
             except Exception as e:
                 raise Exception(e)
 
-        riscos_limpos = []
-
-        while 0 < len(self.riscos):
-            riscos_limpos.append({"alerta": self.riscos[0]["alerta"], 
-                            "ocorrencia" : [self.riscos[0]["arquivo"] + " linha " + str(self.riscos[0]["linha"])]})
-            if "doscente_disciplina" in self.riscos[0]:
-                riscos_limpos[-1]["doscente_disciplina"] = [self.riscos[0]["doscente_disciplina"]]
-            self.riscos.pop(0)
-            j = 0
-            while j < len(self.riscos):
-                if(riscos_limpos[-1]["alerta"] == self.riscos[j]["alerta"]):
-                    riscos_limpos[-1]["ocorrencia"].append(self.riscos[0]["arquivo"] + " linha " + str(self.riscos[0]["linha"]))
-
-                    if "doscente_disciplina" in self.riscos[j]:
-                        riscos_limpos[-1]["doscente_disciplina"].append(self.riscos[j]["doscente_disciplina"])
-                    self.riscos.pop(j)
-                else:
-                    j += 1
-
         with open('data/erros.json', 'w') as file:
-            json.dump(riscos_limpos, file)
+            json.dump(self.riscos, file)
 
 
 if __name__ == '__main__':

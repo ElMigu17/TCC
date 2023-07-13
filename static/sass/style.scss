@@ -9,6 +9,48 @@ html{
     justify-content: center;
 }
 
+.deixa-cinza{
+    width: 100vw;
+    height: 100vh;
+    z-index: 999;
+    position: fixed;
+    background-color: rgba(155,155,155,0.3);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    overflow: scroll;
+
+    .erros-de-leitura{
+        width: 90vw;
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid black;
+        background-color: #FBFBFB;
+
+        display: flex;
+        justify-content: space-around;  
+        position: absolute;
+        top: 10px;
+        margin-bottom: 19px;
+      
+
+        div{
+            flex:1;
+
+            ul{
+                padding: 3px;
+                li{
+                    margin-bottom: 2px;
+                }
+            }
+        }
+
+    }
+}
+
 #toggle-file-type{
     width: 1120px;
     display: flex;
@@ -244,6 +286,7 @@ table, th, td {
         }
     }
 }
+
 .centraliza{
     width: 100%;
     display: flex;

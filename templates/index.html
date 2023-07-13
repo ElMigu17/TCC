@@ -7,6 +7,13 @@
     </head>
     <body>
 
+        <div onclick="fecha_erros_de_leitura(event)" class="deixa-cinza" id="erros-de-leitura">
+            
+            <div class="erros-de-leitura" id="erros-de-leitura-interno">
+
+            </div>
+        </div>
+
         <div class="pos-toggle">
             <div id="toggle-file-type">
                 <p>.json</p>
@@ -154,6 +161,7 @@
                         <div class="botoes-de-solucao">
                             <button onclick="solver(event)" class="botao">Resolver</button>  
                         </div>
+                        <button onclick="erros_de_leitura(event)" class="botao">Erros de leitura</button>
 
                         <label class="download-label" for="export">Download csv da distribuição desse semestre:</label><br>
                         <a class="botao" href="{{url_for('Download_File', tipo_arquivo = 'csv')}}" >Download</a>
