@@ -213,7 +213,11 @@ def main():
    
     i = 1
     for doc in docentes:
-        doc["nome"] = "Docente " + str(i)
+        doc["nome"] = "Docente"
+        stri = str(i)
+        for l in stri:
+            doc["nome"] += " " + l
+
 
         periodos = ["disc_per_1", "disc_per_2", "disc_per_3"]
 
