@@ -2,6 +2,7 @@
 from ortools.sat.python import cp_model
 from solver.Estruturas_de_Dados import disciplina, docente, array_manipulator
 import math
+import time
 
 class distribuicao_graduacao:
 
@@ -19,6 +20,7 @@ class distribuicao_graduacao:
         self.restricao_horario_23_18 = False  
         self.restricao_prioridade = False 
         self.fixados = []
+        self.tempo_inicio = 0
 
         self.peso_pra_posicao = {
             1000: 4,
@@ -287,10 +289,11 @@ class distribuicao_graduacao:
         print('\nStatistics')
         print('  - conflicts: %i' % solver.NumConflicts())
         print('  - branches : %i' % solver.NumBranches())
-        print('  - wall time: %f s' % solver.WallTime())
+        print('  - total time: %f s' % (time.time() - self.tempo_inicio))
         return retorno
                 
     def soluciona(self, disciplinas, docentes):
+       
         print("Resolvendo")
         am = array_manipulator()
         
@@ -316,6 +319,7 @@ class distribuicao_graduacao:
         return self.verifica_solucao()
     
     def main(self, disciplinas, docentes):
+        self.tempo_inicio = time.time()
         restircoes_confgs = [
             {"prioridade": True, "horario": True},
             {"prioridade": False, "horario": True},
