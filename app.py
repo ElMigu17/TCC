@@ -242,6 +242,35 @@ def converte_solucao_csv():
     with open('data/solucao.csv', 'w') as file:
         file.write(dados_output)
 
+
+@app.route('/validar_solucao/', methods=['POST'])
+def validar_solucao():
+    pares_restricao = []
+    for par in request.json['pares_restricao']:
+        pares_restricao.append((par[0], par[1]))
+
+    
+    retorno = 'Optimization'
+    dist_grad = distribuicao_graduacao()
+
+    with open('data/docentes.json', 'r') as file:
+        docentes = json.load(file)
+
+    with open('data/disciplinas.json', "r") as file:
+        disciplinas = json.load(file)
+
+    dados_solucao = dist_grad.valida(disciplinas, docentes, pares_restricao)
+
+    if dados_solucao:
+        with open('data/solucao.json', "w") as file:
+            json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
+        with open('data/dados_solucao.json', "w") as file:
+            json.dump(dados_solucao, file)
+    else:
+        return 'No solution found'
+    return retorno
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 

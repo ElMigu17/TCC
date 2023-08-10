@@ -57,8 +57,10 @@ class distribuicao_graduacao:
                 self.atribuicao[(doc.pos, dis.pos)] = self.modelo.NewBoolVar('atribuicao_doc%idis%i' % (doc.pos, dis.pos)) 
     
     def fixacao_pos_opt(self):
+        print("aaa", self.fixados)
         for fixado in self.fixados:
             self.modelo.AddExactlyOne(self.atribuicao[fixado])
+            print(self.atribuicao[fixado])
 ## Restrições
 
     def res_um_doc_por_dis(self):
@@ -318,6 +320,25 @@ class distribuicao_graduacao:
 
         return self.verifica_solucao()
     
+    def valida(self, disciplinas, docentes, fixos):
+        self.tempo_inicio = time.time()
+        self.fixados = fixos
+        restircoes_confgs = [
+            {"prioridade": True, "horario": True},
+            {"prioridade": False, "horario": True},
+            {"prioridade": False, "horario": False},
+        ]
+        for r in restircoes_confgs:
+            self.restricao_horario_turnos = r["horario"]
+            self.restricao_horario_23_18 = r["horario"]
+            self.restricao_prioridade = r["prioridade"]
+            resultado = self.soluciona(disciplinas, docentes)
+            if resultado:
+                resultado["1 - Houve prioridade:"] = r["prioridade"]
+                resultado["2 - Houve restrição de horario:"] = r["horario"]
+                return resultado  
+        return False
+
     def main(self, disciplinas, docentes):
         self.tempo_inicio = time.time()
         restircoes_confgs = [

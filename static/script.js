@@ -1,6 +1,7 @@
 var dados_solucao = null;
 var tipo_arquivo = "json";
 var mostra_conflito = false;
+var par_disc_doc_obrigatorio = []
 
 def_display_na_classe("csv", "none");
 def_display_na_classe("json", "flex");
@@ -24,6 +25,7 @@ function get_dados_solucao(){
         dataType: "json",
         success: function(data) {
             dados_solucao = data["docentes"];
+            console.log(dados_solucao)
             mostra_analise_solucao(data["dados_solucao"])
             coloca_nome_no_select();
             organiza_tabelas_preferencias();
@@ -45,6 +47,29 @@ function download_link(){
             window.alert(xhr.responseText)
         }
     });
+}
+
+function get_docente_por_nome(nome){
+    retorno = false
+    dados_solucao.forEach( (dado) => {
+        if(dado["nome"] == nome){
+            retorno = dado
+        }
+    })
+    return retorno;
+}
+function get_disciplina_por_codigo(codigo){
+    let retorno = false
+    for(let i=0; i<dados_solucao.length; i++){
+        dado = dados_solucao[i]["disciplinas_dados"]
+        for(let j=0; j<dado.length; j++){
+            dis = dado[j]
+            if(string_cod_turma(dis) == codigo){
+                return dis
+            }
+        }
+    }
+    return retorno;
 }
 
 //Arquivo
@@ -266,7 +291,6 @@ function erros_de_leitura(e){
         dataType: "json",
         success: function(data) {
             document.getElementById("erros-de-leitura").style.display = "flex";
-            console.log(data)
             cria_info_erro(data["incoerencias"]);
         },
         error: function(xhr, status, error) {
@@ -279,7 +303,6 @@ function fecha_erros_de_leitura(e){
     e.preventDefault();
     document.getElementById("erros-de-leitura").style.display = "none";
 }
-
 function cria_info_erro(erros){
     let tabela = document.getElementById("erros-de-leitura-interno");
     tabela.innerHTML = "";
@@ -337,7 +360,6 @@ function cria_info_erro(erros){
         titulo.innerHTML = tipos_pra_titulo[tipo];
 
         let list = document.createElement("ul");
-        console.log(erros);
 
 
         mensagens[tipo].forEach((text) => {
@@ -386,6 +408,94 @@ function alternar_mudanca_conflito(){
     }
     coloca_nome_no_select();
     limapr_tabela();
+}
+    //Find class
+function acha_cod_por_parte(){
+    const codigo = document.getElementById("insere_cod_disciplinas").value;
+    document.getElementById("cod_disciplinas").style.display="flex";
+    const datalist = document.getElementById("cod_disciplinas");
+
+    dados_solucao.forEach((doc) => {
+        doc.disciplinas.forEach((dis) =>{
+            if(dis.includes(codigo)){
+                let nova_option = document.createElement("option");
+                nova_option.value = dis;
+                datalist.appendChild(nova_option);
+            }
+        })
+    })
+}
+function inserir_par_obrigatorio(){
+    const codigo = document.getElementById("insere_cod_disciplinas").value;
+    const nome_docente = document.getElementById("nome_docentes").value;
+    const doc = get_docente_por_nome(nome_docente.replace("*", ""))
+    const dis = get_disciplina_por_codigo(codigo)
+    par_disc_doc_obrigatorio.push([doc, dis])
+}
+function validar_solucao(){
+    par_disc_doc_obrigatorio_para_envio = []
+    disc_alocadas = {}
+
+    console.log("aaaaaaaaaaaaaa", par_disc_doc_obrigatorio)
+    for(let i=0; i<par_disc_doc_obrigatorio.length; i++){
+        disc_alocadas[par_disc_doc_obrigatorio[i][1].pos] = par_disc_doc_obrigatorio[i][0].pos
+        par_disc_doc_obrigatorio_para_envio.push([par_disc_doc_obrigatorio[i][0].pos, par_disc_doc_obrigatorio[i][1].pos])
+    }
+
+
+    for(let i=0; i<dados_solucao.length; i++){
+        doc = dados_solucao[i]
+        dado = doc["disciplinas_dados"]
+        for(let j=0; j<dado.length; j++){
+            dis = dado[j]
+            if(disc_alocadas[dis.pos] == undefined){
+                par_disc_doc_obrigatorio_para_envio.push([doc.pos, dis.pos])
+            }
+            else{
+                console.log(dis.pos)
+            }
+        }
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "validar_solucao",
+        data: JSON.stringify({"pares_restricao": par_disc_doc_obrigatorio_para_envio}),
+        contentType: 'application/json;charset=UTF-8',
+        success: function(response) {
+            console.log(response)
+            if(response == 'No solution found'){
+                alert("Não foi encontrada solução")
+            }
+            else if(typeof response == typeof Object()){
+                if("erro" in response){
+                    alert(response["erro"])
+                }
+                else{
+                    response_str = ''
+                    for(let i in response){
+                        response_str += '\n' + i;
+                        turmas_str = '';
+                        for(let j in response[i]){
+                            turmas_str += response[i][j] + ", "
+                        }
+
+                        response_str += ': ' + turmas_str
+                    }
+
+                    alert("Na hora de fazer a leitura dos arquivos csv, algumas materias antigas aparentemente não foram lecionadas por docentes que lecionarão na solução ou houve uma confusão por haverem nomes indistinguiveis (como Fulano, Fulano de Tal e Fulano Silva). Isso pode ter ocorrido devido a um erro na escrita do nome do doscente. Com isso, segue a lista para futura verificação: \n" + response_str)
+                }
+            } 
+            else{
+                get_dados_solucao();
+                verifica_existencia_arquivo();
+                setTimeout(() => materias_liberadas(), 500);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error(xhr, status, error);
+        }
+    });
 }
 
     //Tabela
@@ -589,7 +699,9 @@ $(document).ready(function() {
     cria_tabela();
     verifica_existencia_arquivo();
     adiciona_listeners_nos_botoes_arquivo();
-
+    
+    document.getElementById("insere_cod_disciplinas").addEventListener("change", acha_cod_por_parte)
     document.getElementById("nome_docentes").addEventListener("change", select_docente)
+
     setTimeout(() => materias_liberadas(), 2400);
 });

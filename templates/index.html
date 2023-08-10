@@ -189,17 +189,34 @@
                 </div>
             </div>
             
+
             <div id="dados_solucao">
                 <h3>Dados da otimização encontrada:</h3>
             </div>
+
             <div class="config-tab">
                 <div>
                     <label for="nome_docentes">Escolha um professor:</label>
                     <select name="nome_docentes" id="nome_docentes"></select> 
                 </div>
+
+                <div>
+                    <label>
+                        Insira codigo de uma composição de <br> turma para adicionar a esse docente
+                    </label>
+                    <input id="insere_cod_disciplinas" type="text" name="cod_disciplinas" list="cod_disciplinas">
+                    <datalist id="cod_disciplinas" style="display: flex;">
+                    </datalist>
+                    <button onclick="inserir_par_obrigatorio()">Inserir</button>
+                    <button onclick="validar_solucao()">Validar Solução</button>
+                </div>
                 <label for="nome_docentes">Mostrar infrações de horário
                     <input onclick="alternar_mudanca_conflito()" type="checkbox" id="mostra_conflito" checked>
                 </label>
+            </div>
+            
+            <div class="mudanca">
+
             </div>
             <div>
                 <table id="horario"></table>
