@@ -68,7 +68,7 @@
                         </div>
                         
                         <label class="download-label" for="export">Download json da distribuição desse semestre:</label><br>
-                        <a class="botao" href="{{url_for('Download_File', tipo_arquivo = 'json')}}">Download</a>
+                        <a class="botao" href="{{url_for('download_file', tipo_arquivo = 'json')}}">Download</a>
                     </div>
 
                     <div class="csv">
@@ -164,7 +164,7 @@
                         <button onclick="erros_de_leitura(event)" class="botao">Erros de leitura</button>
 
                         <label class="download-label" for="export">Download csv da distribuição desse semestre:</label><br>
-                        <a class="botao" href="{{url_for('Download_File', tipo_arquivo = 'csv')}}" >Download</a>
+                        <a class="botao" href="{{url_for('download_file', tipo_arquivo = 'csv')}}" >Download</a>
                     </div>
                 </form>
                 
