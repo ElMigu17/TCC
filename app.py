@@ -9,19 +9,24 @@ import os
 app = Flask(__name__)
 arr_man = array_manipulator()
 
-preferencia_head_csv = "Peso,1,2,3,4,5"
-doscentes_head_csv = "SIAPE,Nome,Redução"
-disciplinas_head_csv = "Disciplina,Local,Tipo,Tempo,Período,Dia,Horário,Turma,Vagas Normais,Vagas Reservadas para Calouros,Vagas para Matrícula Especial,Total Vagas Normais,Total Vagas Reservadas para Calouros,Total Vagas para Matrícula Especial,Docente,"
-qtd_fim_ultimo_semestre = "SIAPE,Professores,Créditos,Número de Disciplinas,nº estudantes fim de período"
+PREFERENCIAS_HEAD_CSV = 'Peso,1,2,3,4,5'
+DOSCENTES_HEAD_CSV = 'SIAPE,Nome,Redução'
+DISCIPLINAS_HEAD_CSV = 'Disciplina,Local,Tipo,Tempo,Período,Dia,Horário,Turma,Vagas Normais,Vagas Reservadas para Calouros,Vagas para Matrícula Especial,Total Vagas Normais,Total Vagas Reservadas para Calouros,Total Vagas para Matrícula Especial,Docente,'
+QTD_FIM_ULTIMO_SEMESTRE = 'SIAPE,Professores,Créditos,Número de Disciplinas,nº estudantes fim de período'
 
-nome_arquivo_head_csv = {
-    'docentes_csv': doscentes_head_csv,
-    'disciplinas_prox': disciplinas_head_csv,
-    'qtd_fim_ultimo_semestre': qtd_fim_ultimo_semestre,
-    'preferencias': preferencia_head_csv,
-    'ultimo_semestre': disciplinas_head_csv,
-    'penultimo_semestre': disciplinas_head_csv,
-    'antipenultimo_semestre': disciplinas_head_csv
+ARQ_DISCIPLINA = 'data/disciplinas.json'
+ARQ_DOCENTE = 'data/docentes.json'
+ARQ_SOLUCAO = 'data/solucao.json'
+ARQ_DADO_SOLUCAO = 'data/dados_solucao.json'
+
+NOME_ARQUIVO_HEAD_CSV = {
+    'docentes_csv': DOSCENTES_HEAD_CSV,
+    'disciplinas_prox': DISCIPLINAS_HEAD_CSV,
+    'qtd_fim_ultimo_semestre': QTD_FIM_ULTIMO_SEMESTRE,
+    'preferencias': PREFERENCIAS_HEAD_CSV,
+    'ultimo_semestre': DISCIPLINAS_HEAD_CSV,
+    'penultimo_semestre': DISCIPLINAS_HEAD_CSV,
+    'antipenultimo_semestre': DISCIPLINAS_HEAD_CSV
 }
 
 item_arquivo_json = {
@@ -39,7 +44,7 @@ def enviar(tipo_arquivo):
     arquivos_com_erro = []
     if tipo_arquivo == 'csv':
         i = 1
-        for key in nome_arquivo_head_csv:
+        for key in NOME_ARQUIVO_HEAD_CSV:
             arquivos_com_erro.append('\n' + str(i) + ' - ' + enviar_file(request, key, 'csv'))
             i += 1
     else:
@@ -74,7 +79,7 @@ def enviar_file(request, file_name, tipo_arquivo):
                     json.dump(json_object, file)
                 return 'null'
         else:
-            if data.split("\n")[0] == nome_arquivo_head_csv[file_name]:
+            if data.split('\n')[0] == NOME_ARQUIVO_HEAD_CSV[file_name]:
                 with open('data/' + file_name + '.csv', 'w') as file:
                     file.write(data)
                 return 'null'
@@ -88,44 +93,44 @@ def solver(tipo_arquivo):
     if tipo_arquivo == 'csv':
         leitor = leitor_csv()
         try:
-            leitor.main("data/docentes_csv.csv", 
-                    "data/disciplinas_prox.csv", 
-                    "data/qtd_fim_ultimo_semestre.csv",
-                    "data/preferencias.csv",
-                    "data/ultimo_semestre.csv",
-                    "data/penultimo_semestre.csv", 
-                    "data/antipenultimo_semestre.csv"
+            leitor.main('data/docentes_csv.csv', 
+                    'data/disciplinas_prox.csv', 
+                    'data/qtd_fim_ultimo_semestre.csv',
+                    'data/preferencias.csv',
+                    'data/ultimo_semestre.csv',
+                    'data/penultimo_semestre.csv', 
+                    'data/antipenultimo_semestre.csv'
                     )
         except ValueError as e:
-            erro_str = ""
+            erro_str = ''
             for er in e.args:
                 erro_str += er
-            return {"erro": erro_str}
+            return {'erro': erro_str}
         
         retorno = leitor.docentes_not_found
         
         am = array_manipulator()
         docentes = am.array_object_to_dict(leitor.docentes)
-        with open('data/docentes.json', 'w') as file:
+        with open(ARQ_DOCENTE, 'w') as file:
             json.dump(docentes, file)
 
 
         disciplinas = am.array_object_to_dict(leitor.disciplinas)
-        with open('data/disciplinas.json', 'w') as file:
+        with open(ARQ_DISCIPLINA, 'w') as file:
             json.dump(disciplinas, file)
 
-    with open('data/docentes.json', 'r') as file:
+    with open(ARQ_DOCENTE, 'r') as file:
         docentes = json.load(file)
 
-    with open('data/disciplinas.json', "r") as file:
+    with open(ARQ_DISCIPLINA, 'r') as file:
         disciplinas = json.load(file)
 
     dados_solucao = dist_grad.main(disciplinas, docentes)
 
     if dados_solucao:
-        with open('data/solucao.json', "w") as file:
+        with open(ARQ_SOLUCAO, 'w') as file:
             json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
-        with open('data/dados_solucao.json', "w") as file:
+        with open(ARQ_DADO_SOLUCAO, 'w') as file:
             json.dump(dados_solucao, file)
     else:
         return 'No solution found'
@@ -134,24 +139,24 @@ def solver(tipo_arquivo):
 @app.route('/docentes-info')
 def docentes_info():
     try:
-        with open('data/solucao.json', 'r') as file:
+        with open(ARQ_SOLUCAO, 'r') as file:
             docentes = json.load(file)
-        with open('data/dados_solucao.json', 'r') as file:
+        with open(ARQ_DADO_SOLUCAO, 'r') as file:
             dados_solucao = json.load(file)
-        with open('data/disciplinas.json', 'r') as file:
+        with open(ARQ_DISCIPLINA, 'r') as file:
             disciplinas = json.load(file)
     except:
-        return "Arquivo de disciplina e/ou o solucao da otimização não estão presentes"
+        return 'Arquivo de disciplina e/ou o solucao da otimização não estão presentes'
 
     dic_obj = arr_man.dict_to_obj(disciplinas)
     dict_cod_turma = arr_man.dict_cod_turma(dic_obj)
 
     for doc in docentes:
-        doc["disciplinas_dados"] = []
-        for dis in doc["disciplinas"]:
-            doc["disciplinas_dados"].append(dict_cod_turma[dis])
+        doc['disciplinas_dados'] = []
+        for dis in doc['disciplinas']:
+            doc['disciplinas_dados'].append(dict_cod_turma[dis])
 
-    return {"docentes": docentes, "dados_solucao": dados_solucao}
+    return {'docentes': docentes, 'dados_solucao': dados_solucao}
 
 @app.route('/erros-de-leitura')
 def erros_de_leitura():
@@ -159,74 +164,73 @@ def erros_de_leitura():
         with open('data/erros.json', 'r') as file:
             incoerencias = json.load(file)
     except:
-        return "Arquivo de erros não está presentes"
+        return 'Arquivo de erros não está presentes'
 
-    return {"incoerencias": incoerencias}
+    return {'incoerencias': incoerencias}
 
 @app.route('/files-existence/<tipo_arquivo>')
 def files_existence(tipo_arquivo):
-    existencia = {"disciplinas": False, "docentes": False}
+    existencia = {'disciplinas': False, 'docentes': False}
     if tipo_arquivo == 'csv':
-        existencia = {"docentes_csv": False, 
-                      "disciplinas_prox": False,
-                      "qtd_fim_ultimo_semestre": False, 
-                      "preferencias": False,
-                      "ultimo_semestre": False, 
-                      "penultimo_semestre": False,
-                      "antipenultimo_semestre": False}
+        existencia = {'docentes_csv': False, 
+                      'disciplinas_prox': False,
+                      'qtd_fim_ultimo_semestre': False, 
+                      'preferencias': False,
+                      'ultimo_semestre': False, 
+                      'penultimo_semestre': False,
+                      'antipenultimo_semestre': False}
         
     for ex in existencia:
-        existencia[ex] = os.path.exists("data/" + ex + "." + tipo_arquivo)
+        existencia[ex] = os.path.exists('data/' + ex + '.' + tipo_arquivo)
 
-    existencia["solucao"] = os.path.exists("data/solucao.json")
+    existencia['solucao'] = os.path.exists(ARQ_SOLUCAO)
 
     return existencia
 
 @app.route('/download/<tipo_arquivo>')
-def Download_File(tipo_arquivo):
-    if not os.path.exists("data/solucao.json"):
-        return "Arquivo de otimização não encontrado"
+def download_file(tipo_arquivo):
+    if not os.path.exists(ARQ_SOLUCAO):
+        return 'Arquivo de otimização não encontrado'
     
-    if tipo_arquivo == "csv":
+    if tipo_arquivo == 'csv':
         converte_solucao_csv()
 
     PATH='data/solucao.' + tipo_arquivo
-    return send_file(PATH,as_attachment=True, download_name=("distribuicao_prox_semestre." + tipo_arquivo))
+    return send_file(PATH,as_attachment=True, download_name=('distribuicao_prox_semestre.' + tipo_arquivo))
 
 def converter_scss():
     sass.compile(dirname=('static/sass', 'static/css'), output_style='compressed')
 
 def converte_solucao_csv():
-    with open("data/solucao.json", 'r') as file:
+    with open(ARQ_SOLUCAO, 'r') as file:
         solucao_json = json.load(file)
-    with open("data/disciplinas_prox.csv", 'r') as file:
-        Dados_Gerais = file.read()
-    dados_output = ""
-    novos_dados = Dados_Gerais
-    novos_dados = Dados_Gerais.split("\n")
-    dados_output = novos_dados.pop(0) + "\n"
-    Dados_Gerais = list(map(lambda d: d.split(","),novos_dados))
+    with open('data/disciplinas_prox.csv', 'r') as file:
+        dados_gerais = file.read()
+    dados_output = ''
+    novos_dados = dados_gerais.split('\n')
+    dados_output = novos_dados.pop(0) + '\n'
+    dados_gerais = list(map(lambda d: d.split(','),novos_dados))
 
     def find_doc(cod_turma):
         i = 0
         while i < len(solucao_json):
-            if cod_turma in solucao_json[i]["disciplinas"]:
-                return solucao_json[i]["nome"]
+            if cod_turma in solucao_json[i]['disciplinas']:
+                return solucao_json[i]['nome']
             i += 1
-        raise ValueError("Não foi encontrado professor que ministra a disciplina " + cod_turma)
+        raise ValueError('Não foi encontrado professor que ministra a disciplina ' + cod_turma)
 
-    for i in range(len(Dados_Gerais)):
-        dado = Dados_Gerais[i]
+    for i in range(len(dados_gerais)):
+        dado = dados_gerais[i]
 
         if dado[0] == '':
-            dados_output += novos_dados[i] + "\n"
+            dados_output += novos_dados[i] + '\n'
             continue
-        codigo_turma = dado[0] + "_" 
+        codigo_turma = dado[0] + '_' 
         turmas = [dado[7]]
 
         j = i+1
-        while len(Dados_Gerais[j]) > 1 and Dados_Gerais[j][0] == '':
-            turmas.append(Dados_Gerais[j][7])
+        while len(dados_gerais[j]) > 1 and dados_gerais[j][0] == '':
+            turmas.append(dados_gerais[j][7])
             j += 1
         turmas.sort()
         codigo_turma += ''.join(turmas)
@@ -235,9 +239,9 @@ def converte_solucao_csv():
         dado[14] = prof
 
         for d in dado:
-            dados_output += d + ","
+            dados_output += d + ','
         dados_output = dados_output[:-1]
-        dados_output += "\n"
+        dados_output += '\n'
 
     with open('data/solucao.csv', 'w') as file:
         file.write(dados_output)
@@ -248,23 +252,22 @@ def validar_solucao():
     pares_restricao = []
     for par in request.json['pares_restricao']:
         pares_restricao.append((par[0], par[1]))
-
     
     retorno = 'Optimization'
     dist_grad = distribuicao_graduacao()
 
-    with open('data/docentes.json', 'r') as file:
+    with open(ARQ_DOCENTE, 'r') as file:
         docentes = json.load(file)
 
-    with open('data/disciplinas.json', "r") as file:
+    with open(ARQ_DISCIPLINA, 'r') as file:
         disciplinas = json.load(file)
 
     dados_solucao = dist_grad.valida(disciplinas, docentes, pares_restricao)
 
     if dados_solucao:
-        with open('data/solucao.json', "w") as file:
+        with open(ARQ_SOLUCAO, 'w') as file:
             json.dump(arr_man.array_object_to_dict(dist_grad.docentes), file)
-        with open('data/dados_solucao.json', "w") as file:
+        with open(ARQ_DADO_SOLUCAO, 'w') as file:
             json.dump(dados_solucao, file)
     else:
         return 'No solution found'

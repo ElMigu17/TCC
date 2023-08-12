@@ -84,7 +84,7 @@ class docente:
         
         if self.estudantes_fim_anterior > doc.estudantes_fim_anterior:
             return True
-        elif self.estudantes_fim_anterior > doc.estudantes_fim_anterior:
+        elif self.estudantes_fim_anterior < doc.estudantes_fim_anterior:
             return False
 
         if self.ultima_vez_que_ministrou(cod_turma) == doc.ultima_vez_que_ministrou(cod_turma):

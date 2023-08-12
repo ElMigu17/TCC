@@ -12,17 +12,18 @@ docentes = []
 siape_docente = {}
 disciplinas = []
 
+def descobre_qtd_creditos(horarios):
+    if(horarios[1].split(":")[1] == '50'):
+        return 1
+    else:
+        return 2
+
 def importa_dados_disciplinas():
 
-    Dados_Gerais = pd.read_excel('Modelos/Dados_Gerais.xlsx')
+    dados_gerais = pd.read_excel('Modelos/Dados_Gerais.xlsx')
     prox_disciplina = {}
     id_i = 0
 
-    def descobre_qtd_creditos(horarios):
-        if(horarios[1].split(":")[1] == '50'):
-            return 1
-        else:
-            return 2
 
     def cria_prox_disciplina(dado):
         prox_disciplina = {}
@@ -36,12 +37,11 @@ def importa_dados_disciplinas():
 
 
 
-    prox_disciplina = cria_prox_disciplina(Dados_Gerais.loc[0])
-    for i in range(1, len(Dados_Gerais)):
-        dado = Dados_Gerais.loc[i]
+    prox_disciplina = cria_prox_disciplina(dados_gerais.loc[0])
+    for i in range(1, len(dados_gerais)):
+        dado = dados_gerais.loc[i]
         if pd.isna(dado['Disciplina']):
-            print("isna")
-            if not dado['Turma'] in prox_disciplina['turmas']:
+            if dado['Turma'] not in prox_disciplina['turmas']:
                 prox_disciplina['turmas'].append(dado['Turma'])
 
         else:
@@ -49,8 +49,7 @@ def importa_dados_disciplinas():
                 prox_disciplina = cria_prox_disciplina(dado)
                 continue
 
-            if ((not dado['Turma'] in prox_disciplina['turmas'])):
-                print(dado['Disciplina'] != '', dado['Disciplina'] )
+            if (dado['Turma'] not in prox_disciplina['turmas']):
                 disciplinas.append( disciplina( id_i, prox_disciplina['disciplina'], 
                     prox_disciplina['qtd_creditos'],
                     prox_disciplina['horarios'], 
@@ -87,12 +86,12 @@ def importa_dados_profs():
 def row_ou_zero(row):
     try:
         return int(row)
-    except:
+    except (TypeError):
         return 0
 
 def importa_dados_passados():
-    Semestres_passados = pd.ExcelFile('Modelos/Semestres_anteriores.xlsx')
-    anterior = Semestres_passados.parse('anterior')
+    semestres_passados = pd.ExcelFile('Modelos/Semestres_anteriores.xlsx')
+    anterior = semestres_passados.parse('anterior')
 
     for i in anterior.index:
 
@@ -106,12 +105,12 @@ def importa_dados_passados():
         docentes[siape_docente[siape]].add_info_ultimo_periodo(num_disc, num_estudantes, creditos)
 
 def importa_preferencias():
-    Preferencias = pd.read_excel('Modelos/Preferencias.xlsx', index_col=0, header=0)
+    preferencias = pd.read_excel('Modelos/Preferencias.xlsx', index_col=0, header=0)
 
-    for i in Preferencias.columns:
-        for j in Preferencias.index:
-            if not pd.isna(Preferencias[i][j]):
-                docentes[siape_docente[i]].add_preferencia(int(Preferencias[i][j]), j)
+    for i in preferencias.columns:
+        for j in preferencias.index:
+            if not pd.isna(preferencias[i][j]):
+                docentes[siape_docente[i]].add_preferencia(int(preferencias[i][j]), j)
 
 
 def main():

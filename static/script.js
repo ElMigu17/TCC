@@ -14,7 +14,7 @@ function string_cod_turma(disc){
     let turmas = disc["turmas"]
     turmas.sort()
     let turmas_as_string = ""
-    for(i in turmas)
+    for(let i in turmas)
         turmas_as_string += turmas[i]
     return disc["codigo"] + "_" + turmas_as_string  
 }
@@ -25,7 +25,6 @@ function get_dados_solucao(){
         dataType: "json",
         success: function(data) {
             dados_solucao = data["docentes"];
-            console.log(dados_solucao)
             mostra_analise_solucao(data["dados_solucao"])
             coloca_nome_no_select();
             organiza_tabelas_preferencias();
@@ -524,19 +523,19 @@ function mostra_disciplinas_docente(nome_docente){
 
     if(i < dados_solucao.length){
         let dados_disciplina = dados_solucao[i]["disciplinas_dados"]
-        for(const doc of dados_disciplina){
-            for(const horario of doc["horarios"]){
-                adiciona_horario_na_tabela(tabela, horario)
+        for(const dis of dados_disciplina){
+            for(const horario of dis["horarios"]){
+                adiciona_horario_na_tabela(tabela, horario, dis)
             }
         }
     }
 }
 
-function adiciona_horario_na_tabela(tabela, horario){
+function adiciona_horario_na_tabela(tabela, horario, dis){
     let pos_hora_inicio = parseInt(horario["hora_inicio"].split(':')) - 6;
     let pos_hora_fim = parseInt(horario["hora_fim"].split(':')) - 6;
     let pos_dia = horario["dia_semana"];
-    let cod = dados_solucao[i]["disciplinas"][j]
+    let cod = string_cod_turma(dis)
     let code_splited = cod.split('_')
 
     let HTML_interno = "<p>"
@@ -576,6 +575,7 @@ function formata_nome(nome){
     let array_nome = nome.split(" ");
     let nome_formatado = array_nome.pop(0) + " ";
 
+    console.log(array_nome, nome_formatado)
     for (const sobrenome of array_nome){
         nome_formatado = nome_formatado + sobrenome[0] + "."
     }

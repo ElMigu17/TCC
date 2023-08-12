@@ -81,33 +81,54 @@ class distribuicao_graduacao:
             else: 
                 self.modelo.Add(total <= self.limite_superior_padrao)
 
-    def ha_conflito_horario(self, dis: disciplina, dis1: disciplina) -> bool:
-        for aula in dis.horarios:
-            for aula1 in dis1.horarios:
-                aula_hi = self.hora_para_float(aula["hora_inicio"])
-                aula1_hi = self.hora_para_float(aula1["hora_inicio"])
-                aula_hf = self.hora_para_float(aula["hora_fim"])
-                aula1_hf = self.hora_para_float(aula1["hora_fim"])
+    def ha_conflito_horario(self, dis1: disciplina, dis2: disciplina) -> bool:
+        for aula1 in dis1.horarios:
+            for aula2 in dis2.horarios:
+                horarios1 = {
+                    "inicio": self.hora_para_float(aula1["hora_inicio"]),
+                    "fim": self.hora_para_float(aula1["hora_fim"])
+                }
+                horarios2 = {
+                    "inicio": self.hora_para_float(aula2["hora_inicio"]),
+                    "fim": self.hora_para_float(aula2["hora_fim"])
+                }
 
-                if self.restricao_horario_23_18:
-                    if (aula["dia_semana"] == aula1["dia_semana"]-1):
-                        if ((aula_hi >= 21) and aula1_hi <= 10):
-                            return  True
+                if self.nao_ha_intervalo_entre_dias(aula1, aula2, horarios1, horarios2):
+                        return True
 
-                    elif (aula1["dia_semana"] == aula["dia_semana"]-1):
-                        if ((aula1_hi >= 21) and aula_hi <= 10):
-                            return  True
-
-                if((dis.pos != dis1.pos) and (aula["dia_semana"] == aula1["dia_semana"])):
-                    if (((aula_hi <= aula1_hi) and (aula1_hi <= aula_hf))
-                      or ((aula1_hi <= aula_hi) and (aula_hi <= aula1_hf))):
-                        return  True
+                if((dis1.pos != dis2.pos) and (aula2["dia_semana"] == aula1["dia_semana"])):
+                    if (self.ha_conflito_de_horario(horarios1, horarios2) or
+                        self.sao_no_turno_matutino_e_noturno(horarios1, horarios2)):
+                        return True
                     
-                    elif(self.restricao_horario_turnos and
-                      ((aula_hi <= self.fim_turno_manha and aula1_hi >= self.inicio_turno_noite) or 
-                      (aula_hi >= self.inicio_turno_noite and aula1_hi <= self.fim_turno_manha))):
+        return False
+    
+    def nao_ha_intervalo_entre_dias(self, aula1, aula2, horarios1, horarios2):
+        if self.restricao_horario_23_18:
+            if (aula1["dia_semana"] == aula2["dia_semana"]-1):
+                if ((horarios1["inicio"] >= 21) and horarios2["inicio"] <= 10):
+                    return  True
+
+            elif (aula2["dia_semana"] == aula1["dia_semana"]-1):
+                if ((horarios2["inicio"] >= 21) and horarios1["inicio"] <= 10):
                         return  True
         return False
+
+    def ha_conflito_de_horario(self, horarios1, horarios2):
+        return (((horarios1["inicio"] <= horarios2["inicio"]) and 
+                    (horarios2["inicio"] <= horarios1["fim"])) or
+
+                ((horarios2["inicio"] <= horarios1["inicio"]) and 
+                    (horarios1["inicio"] <= horarios2["fim"])))
+
+    def sao_no_turno_matutino_e_noturno(self, horarios1, horarios2):
+        return (self.restricao_horario_turnos and
+                ((horarios1["inicio"] <= self.fim_turno_manha and 
+                  horarios2["inicio"] >= self.inicio_turno_noite) or 
+
+                (horarios1["inicio"] >= self.inicio_turno_noite and 
+                 horarios2["inicio"] <= self.fim_turno_manha)))
+
 
     def todos_conflitos_horario(self) -> list:
         ids_pares_proibidos = []
@@ -129,10 +150,13 @@ class distribuicao_graduacao:
     def res_prioridade(self):
         for doc in self.docentes:
             for pre in doc.preferencia:
-                if pre in doc.disc_per_1 and not ( pre in doc.disc_per_2 and pre in doc.disc_per_3 ):
+                if self.possui_prioridade(pre, doc):
                     for dis in self.disciplinas:
                         if dis.string_cod_turma() == pre:
                             self.modelo.AddExactlyOne(self.atribuicao[(doc.pos, dis.pos)])
+    
+    def possui_prioridade(self, pre, doc: docente):
+        return pre in doc.disc_per_1 and not ( pre in doc.disc_per_2 and pre in doc.disc_per_3 )
 
 ###Otimização
 
@@ -201,10 +225,12 @@ class distribuicao_graduacao:
 # Exibições
 
     def exibe_solucao_achada(self, solver):
-        qtds_pref = [0,0,0,0,0]
-        qtd_preferencias_peso = 0
-        qtd_primeir_ranking_ganhador = 0
-        array_creditos = []
+        qtds_analisadas = {
+            "pref" : [0,0,0,0,0],
+            "pref_peso": 0,
+            "primeiro_rank_att": 0,
+            "creditos_por_doc": []
+        }
 
         aux_restricao_horario_23_18 = self.restricao_horario_23_18
         aux_restricao_horario_turnos = self.restricao_horario_turnos
@@ -216,27 +242,10 @@ class distribuicao_graduacao:
 
 
         for doc in self.docentes:
-            array_creditos.append(0)
+            qtds_analisadas["creditos_por_doc"].append(0)
 
             for dis in self.disciplinas:
-                if solver.Value(self.atribuicao[(doc.pos, dis.pos)]) == 1:
-                    add = ""
-
-                    if dis.string_cod_turma() in doc.preferencia:
-                        
-                        pos_pref = self.peso_pra_posicao[doc.preferencia[dis.string_cod_turma()]]
-                        qtds_pref[pos_pref] += 1
-
-                        add = "que possui preferencia " + str(doc.preferencia[dis.string_cod_turma()])
-                        qtd_preferencias_peso += doc.preferencia[dis.string_cod_turma()]
-                    
-                    if dis.pos in self.ranking:
-                        if doc == self.ranking[dis.pos][0]:
-                            add += ", que era o primeiro no ranking"
-                            qtd_primeir_ranking_ganhador += 1
-
-                    array_creditos[-1] += dis.qtd_creditos
-                    doc.disciplinas.append(dis.string_cod_turma())
+                self.analise_disciplina_solucao(solver, doc, dis, qtds_analisadas)
 
             for c in conflitos:
 
@@ -245,30 +254,46 @@ class distribuicao_graduacao:
                     doc.conflitos.append(self.disciplinas[c[0]].string_cod_turma())
                     doc.conflitos.append(self.disciplinas[c[1]].string_cod_turma())
 
-        media_creditos = sum(array_creditos)/len(self.docentes)
-        variancia = sum((a-media_creditos)*(a-media_creditos) for a in array_creditos)/(len(self.docentes)-1)
+        media_creditos = sum(qtds_analisadas["creditos_por_doc"])/len(self.docentes)
+        variancia = sum((a-media_creditos)*(a-media_creditos) for a in qtds_analisadas["creditos_por_doc"])/(len(self.docentes)-1)
         desvio_padrao = math.sqrt(variancia)
 
-        print('Preferencias atendidas =', sum(qtds_pref))
-        print('Total de pesos de preferencia atendidos =', qtd_preferencias_peso)
-        print('Quantidade de primeiros lugar no ranking ganhadores =', qtd_primeir_ranking_ganhador)
+        print('Preferencias atendidas =', sum(qtds_analisadas["pref"]))
+        print('Total de pesos de preferencia atendidos =', qtds_analisadas["pref_peso"])
+        print('Quantidade de primeiros lugar no ranking ganhadores =', qtds_analisadas["primeiro_rank_att"])
         print('Media de créditos: ', media_creditos)
         print('Variancia de créditos: ', variancia)
         print('Desvio padrão de créditos: ', desvio_padrao)
 
-        total_pref = sum(qtds_pref)
+        total_pref = sum(qtds_analisadas["pref"])
         return {
             "3 - Média de créditos": math.trunc(media_creditos*100)/100,
             "4 - Desvio padrão": math.trunc(desvio_padrao*100)/100,
             "5 - Percentual de preferencias atendidas": str(math.trunc((total_pref/(len(self.docentes)*5))*10000)/100) + "%",
             "6 - Percentual de aulas que eram preferidas": str(math.trunc((total_pref/len(self.disciplinas))*10000)/100) + "%",
-            "7 - Percentual de preferencias de peso 5 atendidas": str(math.trunc((qtds_pref[4]/len(self.docentes))*10000)/100) + "%",
-            "8 - Percentual de preferencias de peso 4 atendidas": str(math.trunc((qtds_pref[3]/len(self.docentes))*10000)/100) + "%",
-            "9 - Percentual de preferencias de peso 3 atendidas": str(math.trunc((qtds_pref[2]/len(self.docentes))*10000)/100) + "%",
+            "7 - Percentual de preferencias de peso 5 atendidas": str(math.trunc((qtds_analisadas["pref"][4]/len(self.docentes))*10000)/100) + "%",
+            "8 - Percentual de preferencias de peso 4 atendidas": str(math.trunc((qtds_analisadas["pref"][3]/len(self.docentes))*10000)/100) + "%",
+            "9 - Percentual de preferencias de peso 3 atendidas": str(math.trunc((qtds_analisadas["pref"][2]/len(self.docentes))*10000)/100) + "%",
 
         } 
-    def truncate(number, decimals=0):
-        factor = 10.0 ** decimals
+    
+    def analise_disciplina_solucao(self, solver, doc: docente, dis: disciplina, qtds_analisadas: dict):
+        if solver.Value(self.atribuicao[(doc.pos, dis.pos)]) == 1:
+            if dis.string_cod_turma() in doc.preferencia:
+                
+                pos_pref = self.peso_pra_posicao[doc.preferencia[dis.string_cod_turma()]]
+                qtds_analisadas["pref"][pos_pref] += 1
+
+                qtds_analisadas["pref_peso"] += doc.preferencia[dis.string_cod_turma()]
+            
+            if dis.pos in self.ranking and doc == self.ranking[dis.pos][0]:
+                qtds_analisadas["primeiro_rank_att"] += 1
+
+            qtds_analisadas["creditos_por_doc"][-1] += dis.qtd_creditos
+            doc.disciplinas.append(dis.string_cod_turma())
+
+    def truncate(self, number, decimals=0):
+        factor = 10 ** decimals
         return math.trunc(number * factor) / factor
     
     def verifica_solucao(self):
