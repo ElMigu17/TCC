@@ -11,9 +11,9 @@ document.getElementById("mostra_conflito").checked = false;
 
 //Util
 function string_cod_turma(disc){
-    var turmas = disc["turmas"]
+    let turmas = disc["turmas"]
     turmas.sort()
-    turmas_as_string = ""
+    let turmas_as_string = ""
     for(i in turmas)
         turmas_as_string += turmas[i]
     return disc["codigo"] + "_" + turmas_as_string  
@@ -50,7 +50,7 @@ function download_link(){
 }
 
 function get_docente_por_nome(nome){
-    retorno = false
+    let retorno = false
     dados_solucao.forEach( (dado) => {
         if(dado["nome"] == nome){
             retorno = dado
@@ -60,10 +60,9 @@ function get_docente_por_nome(nome){
 }
 function get_disciplina_por_codigo(codigo){
     let retorno = false
-    for(let i=0; i<dados_solucao.length; i++){
-        dado = dados_solucao[i]["disciplinas_dados"]
-        for(let j=0; j<dado.length; j++){
-            dis = dado[j]
+    for(const docente of dados_solucao){
+        let dado = docente["disciplinas_dados"]
+        for(const dis of dado){
             if(string_cod_turma(dis) == codigo){
                 return dis
             }
@@ -89,9 +88,9 @@ function alternar_tipo_arquivo(){
 }
 
 function def_display_na_classe(classe, meu_display){
-    elementos_csv = document.getElementsByClassName(classe);
-    for(let i=0; i<elementos_csv.length; i++){
-        elementos_csv[i].style.display = meu_display;
+    let elementos_csv = document.getElementsByClassName(classe);
+    for(const elemento_csv of elementos_csv){
+        elemento_csv.style.display = meu_display;
     }
 }
 
@@ -114,7 +113,7 @@ function arquivo_caiu(event){
     let data = new FormData(); 
     data.append(id, file, id)
 
-    all_file_name = file.name.split(".")
+    let all_file_name = file.name.split(".")
     if(all_file_name[all_file_name.length - 1] != tipo_arquivo){
         return 0;
     }
@@ -124,7 +123,7 @@ function arquivo_caiu(event){
 }
 
 function adiciona_listeners_nos_botoes_arquivo(){
-    var botoes_selecao_arquivo = document.getElementsByClassName('botao-selecao-arquivo')
+    let botoes_selecao_arquivo = document.getElementsByClassName('botao-selecao-arquivo')
 
     function seleciona_arquivo(event){
         
@@ -139,9 +138,8 @@ function adiciona_listeners_nos_botoes_arquivo(){
         
     }
 
-    for(let i=0; i<botoes_selecao_arquivo.length; i++){
-        botoes_selecao_arquivo[i].addEventListener('change',seleciona_arquivo,false);
-
+    for(const botao of botoes_selecao_arquivo){
+        botao.addEventListener('change',seleciona_arquivo,false);
     }
 }
 
@@ -235,10 +233,10 @@ function solver(e){
                     alert(response["erro"])
                 }
                 else{
-                    response_str = ''
+                    let response_str = ''
                     for(let i in response){
                         response_str += '\n' + i;
-                        turmas_str = '';
+                        let turmas_str = '';
                         for(let j in response[i]){
                             turmas_str += response[i][j] + ", "
                         }
