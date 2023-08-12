@@ -385,11 +385,11 @@ function select_docente(docente){
 }
 
 function coloca_nome_no_select(){
-    var select = document.getElementById("nome_docentes")
+    let select = document.getElementById("nome_docentes")
     let valor_selecionado = select.value;
     select.innerHTML = ''
     dados_solucao.forEach(element => {
-        var opt = document.createElement('option');
+        let opt = document.createElement('option');
         opt.value = element["nome"];
         opt.innerHTML = element["nome"];
         if(mostra_conflito && element["conflitos"].length > 0){
@@ -433,26 +433,20 @@ function inserir_par_obrigatorio(){
     par_disc_doc_obrigatorio.push([doc, dis])
 }
 function validar_solucao(){
-    par_disc_doc_obrigatorio_para_envio = []
-    disc_alocadas = {}
+    let par_disc_doc_obrigatorio_para_envio = []
+    let disc_alocadas = {}
 
-    console.log("aaaaaaaaaaaaaa", par_disc_doc_obrigatorio)
-    for(let i=0; i<par_disc_doc_obrigatorio.length; i++){
-        disc_alocadas[par_disc_doc_obrigatorio[i][1].pos] = par_disc_doc_obrigatorio[i][0].pos
-        par_disc_doc_obrigatorio_para_envio.push([par_disc_doc_obrigatorio[i][0].pos, par_disc_doc_obrigatorio[i][1].pos])
+    for(const par of par_disc_doc_obrigatorio){
+        disc_alocadas[par[1].pos] = par[0].pos
+        par_disc_doc_obrigatorio_para_envio.push([par[0].pos, par[1].pos])
     }
 
 
-    for(let i=0; i<dados_solucao.length; i++){
-        doc = dados_solucao[i]
-        dado = doc["disciplinas_dados"]
-        for(let j=0; j<dado.length; j++){
-            dis = dado[j]
+    for(const doc of dados_solucao){
+        let dado = doc["disciplinas_dados"]
+        for(const dis of dado){
             if(disc_alocadas[dis.pos] == undefined){
                 par_disc_doc_obrigatorio_para_envio.push([doc.pos, dis.pos])
-            }
-            else{
-                console.log(dis.pos)
             }
         }
     }
@@ -523,49 +517,48 @@ function cria_tabela(){
 }
 
 function mostra_disciplinas_docente(nome_docente){
-    var tabela = document.getElementById("horario");
-    var i = 0;
+    let tabela = document.getElementById("horario");
+    let i = 0;
 
     while(i < dados_solucao.length && dados_solucao[i]["nome"] != nome_docente){
         i++;
     }
 
     if(i < dados_solucao.length){
-        var dados_disciplina = dados_solucao[i]["disciplinas_dados"]
-
-        for(var j = 0; j < dados_disciplina.length; j++){    
-            var horarios = dados_disciplina[j]["horarios"]
-            
-            for(var k = 0; k < horarios.length; k++){
-                
-                let pos_hora_inicio = parseInt(horarios[k]["hora_inicio"].split(':')) - 6;
-                let pos_hora_fim = parseInt(horarios[k]["hora_fim"].split(':')) - 6;
-                let pos_dia = horarios[k]["dia_semana"];
-                let cod = dados_solucao[i]["disciplinas"][j]
-                let code_splited = cod.split('_')
-
-                let HTML_interno = "<p>"
-                if(mostra_conflito && dados_solucao[i]["conflitos"].includes(cod)){
-                    HTML_interno = "<p class='conflito_horario'>"
-                }
-                HTML_interno = HTML_interno + code_splited[0] + "</br>" + code_splited[1] + "</p>";
-
-                for(var a = pos_hora_inicio; a <= pos_hora_fim; a++){
-                    tabela.getElementsByTagName("tr")[a].getElementsByTagName("td")[pos_dia].innerHTML = HTML_interno
-                }
+        let dados_disciplina = dados_solucao[i]["disciplinas_dados"]
+        for(const doc of dados_disciplina){
+            for(const horario of doc["horarios"]){
+                adiciona_horario_na_tabela(tabela, horario)
             }
         }
+    }
+}
 
+function adiciona_horario_na_tabela(tabela, horario){
+    let pos_hora_inicio = parseInt(horario["hora_inicio"].split(':')) - 6;
+    let pos_hora_fim = parseInt(horario["hora_fim"].split(':')) - 6;
+    let pos_dia = horario["dia_semana"];
+    let cod = dados_solucao[i]["disciplinas"][j]
+    let code_splited = cod.split('_')
+
+    let HTML_interno = "<p>"
+    if(mostra_conflito && dados_solucao[i]["conflitos"].includes(cod)){
+        HTML_interno = "<p class='conflito_horario'>"
+    }
+    HTML_interno = HTML_interno + code_splited[0] + "</br>" + code_splited[1] + "</p>";
+
+    for(let a = pos_hora_inicio; a <= pos_hora_fim; a++){
+        tabela.getElementsByTagName("tr")[a].getElementsByTagName("td")[pos_dia].innerHTML = HTML_interno
     }
 }
 
 function limapr_tabela(){
-    var tabela = document.getElementById("horario");
+    let tabela = document.getElementById("horario");
 
-    for(var i=1; i<17; i++){
-        var row = tabela.getElementsByTagName("tr")[i];
+    for(let i=1; i<17; i++){
+        let row = tabela.getElementsByTagName("tr")[i];
 
-        for(var j=1; j<7; j++){
+        for(let j=1; j<7; j++){
             row.getElementsByTagName("td")[j].innerHTML = "";
         }
     }
@@ -574,7 +567,7 @@ function limapr_tabela(){
 
 //Tabela Preferencia
 function pega_disciplina_por_peso(preferencias, peso){
-    for(pre in preferencias){
+    for(const pre in preferencias){
         if(preferencias[pre] == peso){
             return pre
         }
@@ -582,14 +575,14 @@ function pega_disciplina_por_peso(preferencias, peso){
 }
 
 function formata_nome(nome){
-    var array_nome = nome.split(" ");
-    array_nome[0] = array_nome[0] + " ";
+    let array_nome = nome.split(" ");
+    let nome_formatado = array_nome.pop(0) + " ";
 
-    for (var i=1; i<array_nome.length; i++){
-        array_nome[0] = array_nome[0] + array_nome[i][0] + "."
+    for (const sobrenome of array_nome){
+        nome_formatado = nome_formatado + sobrenome[0] + "."
     }
 
-    return array_nome[0]
+    return nome_formatado
 }
 
 function organiza_tabelas_preferencias(){
@@ -607,7 +600,7 @@ function organiza_tabelas_preferencias(){
         let inicio = (i-1)*qtd_profs
         let fim = i*qtd_profs
         let dados_sliced = dados_solucao.slice(inicio, fim)
-        var tabela = document.createElement('table');
+        let tabela = document.createElement('table');
         
         document.getElementById("tabela_preferencias").appendChild(tabela);
         preenche_tabela_preferencias(dados_sliced, tabela);
@@ -663,15 +656,15 @@ function preenche_tabela_preferencias(data, tabela){
 
 function materias_serao_foram_liberadas(periodo_3, periodo_2, periodo_1, id){
     let disciplinas_liberadas = []
-    for (i in dados_solucao) {
+    for (const i in dados_solucao) {
         let disciplinas_seguidas = structuredClone(dados_solucao[i][periodo_1])
-        for (j in disciplinas_seguidas){
+        for (const j in disciplinas_seguidas){
             if(!(disciplinas_seguidas[j] in dados_solucao[i][periodo_2])){
                 disciplinas_seguidas.pop(j)
             }
         }
 
-        for (j in disciplinas_seguidas){
+        for (const j in disciplinas_seguidas){
             if(!(disciplinas_seguidas[j] in dados_solucao[i][periodo_3])){
                 disciplinas_seguidas.pop(j)
             }
@@ -693,6 +686,18 @@ function materias_liberadas(){
     
     materias_serao_foram_liberadas("disc_per_2", "disc_per_1", "disciplinas", "disciplinas_serao_liberadas")
     materias_serao_foram_liberadas("disc_per_3", "disc_per_2", "disc_per_1", "disciplinas_estao_liberadas")
+}
+
+function ast(){
+    const fs = require("fs");
+
+    const parser = require("@babel/parser");
+
+    let js = fs.readFileSync("script.js", "utf-8");
+
+    const ast = parser.parse(js);
+
+    console.log(ast)
 }
 
 $(document).ready(function() {
